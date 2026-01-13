@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ร่วมงานกับเรา - Makro</title>
+
+  <style>
+    :root { 
+      --max: 1100px; 
+      --makro-red: #ED1C24; /* สีแดง Makro */
+      --makro-red-dark: #c41219;
+      --bg-color: #f6f7fb;
+    }
+    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg-color); color:#111; }
+    
+    /* === ปรับแก้ Header (Theme สีแดง Makro) === */
+    header { 
+      padding:40px 18px; 
+      color:#fff; 
+      background: linear-gradient(135deg, var(--makro-red) 0%, #ff4d4d 100%); /* ไล่สีแดงให้ดูมีมิติ */
+      box-shadow: 0 4px 20px rgba(237, 28, 36, 0.2);
+    }
+    
+    header .wrap { 
+      max-width: var(--max); 
+      margin:auto; 
+      display: flex; 
+      align-items: center; 
+      gap: 24px; 
+      justify-content: space-between; 
+    }
+    
+    /* สไตล์รูป Logo (พื้นหลังขาว) */
+    header .logo {
+      width: 140px;         /* ขยายขนาดเล็กน้อยให้เหมาะกับโลโก้แนวนอน */
+      height: 80px;         /* กำหนดความสูงฟิกซ์ */
+      object-fit: contain;
+      background: #fff;     
+      border-radius: 12px;
+      padding: 12px 20px;   
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+
+    header .header-text { flex: 1; }
+    header h1 { margin:0 0 8px; font-size:36px; line-height: 1.1; font-weight: 800; letter-spacing: -0.5px; }
+    header p { margin:0; font-size:18px; opacity:.95; font-weight: 400; }
+
+    /* ปรับแต่งสำหรับมือถือ (Mobile) */
+    @media (max-width: 600px) {
+      header .wrap { flex-direction: column-reverse; text-align: center; gap: 20px; }
+      header h1 { font-size: 28px; }
+      header .logo { width: 120px; height: auto; padding: 10px 16px; }
+    }
+    /* ================================== */
+
+    main { max-width: var(--max); margin:auto; padding:24px 18px 60px; }
+    .card { background:#fff; border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.04); margin-bottom:20px; border: 1px solid rgba(0,0,0,0.03); }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    
+    /* Pills & UI Elements */
+    .pill { background:#fff1f2; color:var(--makro-red-dark); font-weight:700; font-size:13px; padding:6px 12px; border-radius:999px; letter-spacing: 0.5px; }
+    .muted { opacity:.6; font-size: 14px; }
+
+    input, select { padding:12px 16px; border-radius:12px; border:1px solid #e5e7eb; font-size:15px; background:#fff; transition: border-color 0.2s; }
+    input:focus, select:focus { outline: none; border-color: var(--makro-red); box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.1); }
+    
+    .btn { border:0; border-radius:12px; padding:12px 20px; font-weight:600; cursor:pointer; font-size: 15px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    
+    /* ปุ่ม Primary สีแดง Makro */
+    .btn.primary { background:var(--makro-red); color:#fff; box-shadow: 0 4px 12px rgba(237, 28, 36, 0.3); }
+    .btn.primary:hover { background:var(--makro-red-dark); transform: translateY(-1px); }
+    
+    .btn.ghost { background:#f3f4f6; color:#4b5563; }
+    .btn.ghost:hover { background:#e5e7eb; color:#111; }
+
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; margin-top:20px; }
+    
+    /* Job Card Styling */
+    .job { 
+      border:1px solid #f3f4f6; 
+      border-radius:16px; 
+      padding:20px; 
+      background:#fff; 
+      transition: all 0.2s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .job:hover { 
+      transform: translateY(-4px); 
+      border-color: #fecaca; 
+      box-shadow: 0 12px 24px rgba(237, 28, 36, 0.08); 
+    }
+    .job h3 { margin:12px 0 8px; font-size:18px; line-height:1.4; color: #111827; font-weight: 700; flex: 1; }
+    
+    .meta { font-size:14px; color: #6b7280; margin-bottom: 16px; }
+    .meta div { margin:6px 0; display:flex; align-items:center; gap:8px; }
+    .meta i { font-style: normal; font-size: 16px; }
+    
+    .status-badge { display:inline-flex; align-items: center; gap:4px; font-size:12px; padding:4px 10px; border-radius:6px; font-weight:600; letter-spacing: 0.3px; }
+    .status-open { background:#ecfdf5; color:#059669; border: 1px solid #d1fae5; }
+    .status-closed { background:#fef2f2; color:#991b1b; }
+
+    iframe { width:100%; height:900px; border:0; border-radius:16px; background:#fff; margin-top:12px; border: 1px solid #e5e7eb; }
+    
+    /* Loading Spinner สีแดง */
+    .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--makro-red); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 30px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <!-- ส่วนข้อความ -->
+    <div class="header-text">
+      <h1>ร่วมงานกับเรา</h1>
+      <p>ค้นหาตำแหน่งงานว่างและสมัครออนไลน์ได้ทันที</p>
+    </div>
+
+    <!-- ส่วน Logo (Makro) -->
+    <img id="companyLogo" 
+         src="" 
+         class="logo" 
+         alt="Makro Logo" 
+         referrerpolicy="no-referrer"
+         onerror="this.style.display='none'">
+  </div>
+</header>
+
+<main>
+  <!-- ส่วนค้นหา -->
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <span class="pill">ค้นหาตำแหน่งงาน</span>
+        <div class="muted" style="margin-top:4px;">เลือกสาขา หรือพิมพ์ชื่อตำแหน่งที่สนใจ</div>
+      </div>
+      <!-- เปลี่ยน Wording ปุ่มตามที่ขอ -->
+      <button class="btn primary" id="refreshBtn">
+        <span style="font-size:18px">↻</span> รีเฟรชตำแหน่งงาน
+      </button>
+    </div>
+
+    <div class="row" style="margin-top:20px">
+      <input id="q" placeholder="🔍 พิมพ์ชื่อตำแหน่ง..." style="flex:1;min-width:240px">
+      <select id="filterBranch" style="min-width:180px"><option value="">🏢 ทุกสาขา</option></select>
+      <button class="btn ghost" id="clearBtn">ล้างตัวกรอง</button>
+    </div>
+  </section>
+
+  <!-- ส่วนแสดงรายการ -->
+  <section class="card">
+    <div id="statusMsg" class="muted">กำลังเชื่อมต่อฐานข้อมูล...</div>
+    <div id="jobs" class="grid"></div>
+  </section>
+
+  <!-- ส่วนใบสมัคร -->
+  <section class="card" id="applySection" style="display:none;">
+    <span class="pill">ใบสมัครงาน</span>
+    <p class="muted" style="margin-top:8px">กรอกข้อมูลด้านล่างเพื่อสมัครในตำแหน่ง: <b id="applyPositionName" style="color:var(--makro-red)">...</b></p>
+    <!-- Microsoft Forms iframe จะถูกใส่ที่นี่ -->
+    <div id="iframeContainer"></div>
+  </section>
+</main>
+
+<script>
+/* ================= CONFIG (ตั้งค่าตรงนี้) ================= */
+
+// 1. ใส่ลิงก์ CSV จาก Google Sheet
+const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNspwvCPUWv4QOCeQNiC30GdqHfOkPfKjCpy-aeE8lXx0jn2zRnGEbiQfoBWcEb5JBg4R6parrFJUr/pub?output=csv"; 
+
+// 2. ลิงก์รูปภาพ Logo (ใช้ลิงก์ Makro ใหม่ตามที่ขอ)
+const COMPANY_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Makro_logo.svg/2560px-Makro_logo.svg.png";
+
+// 3. Microsoft Form Link
+const FORM_BASE_URL = "https://forms.office.com/r/wabJfczd4Z";
+
+// =========================================================
+
+/* ตัวแปร Global เก็บข้อมูล */
+let allJobs = [];
+let branches = new Set();
+
+/* DOM Elements */
+const elQ = document.getElementById("q");
+const elFilterBranch = document.getElementById("filterBranch");
+const elClearBtn = document.getElementById("clearBtn");
+const elStatus = document.getElementById("statusMsg");
+const elJobs = document.getElementById("jobs");
+const elRefreshBtn = document.getElementById("refreshBtn");
+const elApplySection = document.getElementById("applySection");
+const elApplyPositionName = document.getElementById("applyPositionName");
+const elIframeContainer = document.getElementById("iframeContainer");
+
+/* เริ่มทำงานเมื่อโหลดหน้าเว็บ */
+window.onload = init;
+
+async function init() {
+  if (COMPANY_LOGO_URL) {
+    document.getElementById("companyLogo").src = COMPANY_LOGO_URL;
+  }
+  await loadData();
+  
+  elQ.addEventListener("input", renderJobs);
+  elFilterBranch.addEventListener("change", renderJobs);
+  elClearBtn.addEventListener("click", () => {
+    elQ.value = "";
+    elFilterBranch.value = "";
+    renderJobs();
+  });
+  elRefreshBtn.addEventListener("click", loadData);
+}
+
+/* ฟังก์ชันดึงข้อมูลจาก Google Sheets */
+async function loadData() {
+  elStatus.innerHTML = '<div class="loader"></div>';
+  elJobs.innerHTML = "";
+  
+  try {
+    const response = await fetch(GOOGLE_SHEET_CSV_URL);
+    if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
+    
+    const text = await response.text();
+    const data = parseCSV(text); 
+
+    // แก้ไขการ Mapping ข้อมูลตามที่ขอ
+    // Column E (index 4) คือ ชื่อตำแหน่ง
+    // ตัด description ออก
+    allJobs = data.map(row => ({
+      code: row[0] || "",
+      branch: row[1] || "",
+      position: row[4] || "", // แก้เป็น Column E (Index 4)
+      status: row[3] || "Closed"
+      // desc: row[4] // ลบคำอธิบายออกตามคำขอ
+    })).filter(job => job.position && job.branch);
+
+    updateBranchDropdown();
+    renderJobs();
+    elStatus.textContent = `พบตำแหน่งงานว่าง ${allJobs.length} อัตรา (อัปเดต: ${new Date().toLocaleTimeString('th-TH')})`;
+
+  } catch (error) {
+    console.error(error);
+    elStatus.innerHTML = `<span style="color:red">เกิดข้อผิดพลาด: ${error.message}</span>`;
+  }
+}
+
+/* ฟังก์ชันแสดงผลการ์ดงาน */
+function renderJobs() {
+  const searchText = elQ.value.toLowerCase();
+  const branchFilter = elFilterBranch.value;
+
+  const filtered = allJobs.filter(job => {
+    const matchSearch = job.position.toLowerCase().includes(searchText) || 
+                        job.branch.toLowerCase().includes(searchText);
+    const matchBranch = branchFilter === "" || job.branch === branchFilter;
+    const matchStatus = job.status.toLowerCase().trim() === "open";
+
+    return matchSearch && matchBranch && matchStatus;
+  });
+
+  elJobs.innerHTML = "";
+
+  if (filtered.length === 0) {
+    elJobs.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;opacity:0.6">ไม่พบตำแหน่งงานที่ค้นหา</div>`;
+    return;
+  }
+
+  filtered.forEach(job => {
+    const card = document.createElement("div");
+    card.className = "job";
+    // ตัดส่วนรายละเอียด (Description) ออกจาก HTML
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <span class="status-badge status-open">● เปิดรับสมัคร</span>
+        <small class="muted" style="font-size:11px">REF: ${job.code}</small>
+      </div>
+      
+      <h3>${job.position}</h3>
+      
+      <div class="meta">
+        <div>🏢 <strong>${job.branch}</strong></div>
+      </div>
+      
+      <button class="btn ghost" style="width:100%; margin-top:auto;" onclick="openApplyForm('${job.position}', '${job.branch}')">
+        สมัครตำแหน่งนี้ 👉
+      </button>
+    `;
+    elJobs.appendChild(card);
+  });
+}
+
+/* ฟังก์ชันเปิดฟอร์มสมัครงาน */
+window.openApplyForm = function(position, branch) {
+  elApplySection.style.display = "block";
+  elApplyPositionName.textContent = `${position} (${branch})`;
+  elApplySection.scrollIntoView({ behavior: "smooth" });
+  elIframeContainer.innerHTML = `<iframe src="${FORM_BASE_URL}" allowfullscreen></iframe>`;
+}
+
+/* ฟังก์ชันอัปเดต Dropdown สาขา */
+function updateBranchDropdown() {
+  const branches = [...new Set(allJobs.map(j => j.branch))].sort();
+  const currentVal = elFilterBranch.value;
+  elFilterBranch.innerHTML = '<option value="">🏢 ทุกสาขา</option>';
+  branches.forEach(b => {
+    const opt = document.createElement("option");
+    opt.value = b;
+    opt.textContent = b;
+    elFilterBranch.appendChild(opt);
+  });
+  if (branches.includes(currentVal)) elFilterBranch.value = currentVal;
+}
+
+/* ฟังก์ชันแปลง CSV */
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/);
+  const result = [];
+  for (let i = 1; i < lines.length; i++) { 
+    if (!lines[i].trim()) continue;
+    const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+    const fallbackRow = lines[i].split(',');
+    const cleanRow = (row || fallbackRow).map(col => 
+      col.replace(/^"|"$/g, '').replace(/""/g, '"').trim()
+    );
+    result.push(cleanRow);
+  }
+  return result;
+}
+</script>
+
+</body>
+</html>
