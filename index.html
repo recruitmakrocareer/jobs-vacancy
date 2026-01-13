@@ -145,7 +145,7 @@
     </div>
 
     <div class="row" style="margin-top:20px">
-      <input id="q" placeholder="🔍 พิมพ์ชื่อตำแหน่ง..." style="flex:1;min-width:240px">
+      <input id="q" placeholder="พิมพ์ชื่อตำแหน่งงาน หรือสาขาที่ต้องการสมัคร..." style="flex:1;min-width:240px">
       <select id="filterBranch" style="min-width:180px"><option value="">🏢 ทุกสาขา</option></select>
       <button class="btn ghost" id="clearBtn">ล้างตัวกรอง</button>
     </div>
@@ -169,8 +169,8 @@
 <script>
 /* ================= CONFIG (ตั้งค่าตรงนี้) ================= */
 
-// 1. ใส่ลิงก์ CSV จาก Google Sheet
-const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNspwvCPUWv4QOCeQNiC30GdqHfOkPfKjCpy-aeE8lXx0jn2zRnGEbiQfoBWcEb5JBg4R6parrFJUr/pub?output=csv"; 
+// 1. ใส่ลิงก์ CSV จาก Google Sheet (อัปเดตใหม่)
+const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?output=csv"; 
 
 // 2. ลิงก์รูปภาพ Logo (ใช้ลิงก์ Makro ใหม่ตามที่ขอ)
 const COMPANY_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Makro_logo.svg/2560px-Makro_logo.svg.png";
@@ -275,7 +275,7 @@ function renderJobs() {
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:start;">
         <span class="status-badge status-open">● เปิดรับสมัคร</span>
-        <small class="muted" style="font-size:11px">REF: ${job.code}</small>
+        <!-- ลบส่วน REF ออกตามที่ขอ -->
       </div>
       
       <h3>${job.position}</h3>
