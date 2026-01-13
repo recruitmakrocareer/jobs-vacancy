@@ -120,7 +120,7 @@
       <p>ค้นหาตำแหน่งงานว่างและสมัครออนไลน์ได้ทันที</p>
     </div>
 
-    <!-- ส่วน Logo (Makro) -->
+    <!-- ส่วน Logo -->
     <img id="companyLogo" 
          src="" 
          class="logo" 
@@ -172,8 +172,16 @@
 // 1. ใส่ลิงก์ CSV จาก Google Sheet (อัปเดตใหม่)
 const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?output=csv"; 
 
-// 2. ลิงก์รูปภาพ Logo (ใช้ลิงก์ Makro ใหม่ตามที่ขอ)
-const COMPANY_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Makro_logo.svg/2560px-Makro_logo.svg.png";
+// 2. ตั้งค่ารูปภาพ Logo (เลือกใช้วิธีใดวิธีหนึ่ง)
+
+// วิธี A: ใช้ลิงก์จากเว็บ (Wikimedia/Google Drive)
+// const COMPANY_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Makro_logo.svg/2560px-Makro_logo.svg.png";
+
+// วิธี B: ใช้รูปจากในเครื่อง (ต้องอัปโหลดรูปลง GitHub ที่เดียวกับ index.html)
+const COMPANY_LOGO_URL = "./LOGOT.png"; 
+
+// วิธี C: ใช้ Base64 (ถ้าต้องการฝังโค้ดรูปภาพลงไปเลย)
+// const COMPANY_LOGO_URL = "data:image/png;base64,.....รหัสยาวๆ.....";
 
 // 3. Microsoft Form Link
 const FORM_BASE_URL = "https://forms.office.com/r/wabJfczd4Z";
@@ -297,7 +305,16 @@ window.openApplyForm = function(position, branch) {
   elApplySection.style.display = "block";
   elApplyPositionName.textContent = `${position} (${branch})`;
   elApplySection.scrollIntoView({ behavior: "smooth" });
-  elIframeContainer.innerHTML = `<iframe src="${FORM_BASE_URL}" allowfullscreen></iframe>`;
+  
+  // เพิ่มปุ่มสำรองสำหรับ Mobile (แก้ปัญหา iframe ไม่โหลดบน Android/iOS)
+  elIframeContainer.innerHTML = `
+    <div style="text-align:center; margin-bottom:12px;">
+       <a href="${FORM_BASE_URL}" target="_blank" class="btn ghost" style="display:inline-flex; align-items:center; gap:6px; font-size:14px; color:#4b5563; background:#f3f4f6; border:1px solid #e5e7eb;">
+         <span>⚠️ หากแบบฟอร์มไม่แสดง</span> <span style="text-decoration:underline; font-weight:bold;">คลิกที่นี่เพื่อเปิดฟอร์มในหน้าต่างใหม่</span>
+       </a>
+    </div>
+    <iframe src="${FORM_BASE_URL}" allowfullscreen></iframe>
+  `;
 }
 
 /* ฟังก์ชันอัปเดต Dropdown สาขา */
