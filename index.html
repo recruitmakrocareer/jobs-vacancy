@@ -172,16 +172,8 @@
 // 1. ใส่ลิงก์ CSV จาก Google Sheet (อัปเดตใหม่)
 const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?output=csv"; 
 
-// 2. ตั้งค่ารูปภาพ Logo (เลือกใช้วิธีใดวิธีหนึ่ง)
-
-// วิธี A: ใช้ลิงก์จากเว็บ (Wikimedia/Google Drive)
-// const COMPANY_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Makro_logo.svg/2560px-Makro_logo.svg.png";
-
-// วิธี B: ใช้รูปจากในเครื่อง (ต้องอัปโหลดรูปลง GitHub ที่เดียวกับ index.html)
+// 2. ตั้งค่ารูปภาพ Logo (ใช้รูปใน Repo ตามที่คุณอัปโหลด)
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
-
-// วิธี C: ใช้ Base64 (ถ้าต้องการฝังโค้ดรูปภาพลงไปเลย)
-// const COMPANY_LOGO_URL = "data:image/png;base64,.....รหัสยาวๆ.....";
 
 // 3. Microsoft Form Link
 const FORM_BASE_URL = "https://forms.office.com/r/wabJfczd4Z";
@@ -232,7 +224,7 @@ async function loadData() {
     if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
     
     const text = await response.text();
-    const data = parseCSV(text); 
+    const data = parseCSV(text); // ใช้ฟังก์ชันใหม่ที่แม่นยำกว่าเดิม
 
     // แก้ไขการ Mapping ข้อมูลตามที่ขอ
     // Column E (index 4) คือ ชื่อตำแหน่ง
@@ -242,7 +234,6 @@ async function loadData() {
       branch: row[1] || "",
       position: row[4] || "", // แก้เป็น Column E (Index 4)
       status: row[3] || "Closed"
-      // desc: row[4] // ลบคำอธิบายออกตามคำขอ
     })).filter(job => job.position && job.branch);
 
     updateBranchDropdown();
@@ -331,20 +322,37 @@ function updateBranchDropdown() {
   if (branches.includes(currentVal)) elFilterBranch.value = currentVal;
 }
 
-/* ฟังก์ชันแปลง CSV */
+/* ฟังก์ชันแปลง CSV แบบแม่นยำ (แก้ปัญหาตัดคำผิดเมื่อมีเว้นวรรค) */
 function parseCSV(text) {
   const lines = text.split(/\r?\n/);
-  const result = [];
-  for (let i = 1; i < lines.length; i++) { 
-    if (!lines[i].trim()) continue;
-    const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-    const fallbackRow = lines[i].split(',');
-    const cleanRow = (row || fallbackRow).map(col => 
-      col.replace(/^"|"$/g, '').replace(/""/g, '"').trim()
-    );
-    result.push(cleanRow);
-  }
-  return result;
+  // ใช้ Logic Loop แทน Regex เพื่อความแม่นยำในการนับ Column
+  return lines.map(line => {
+    if (!line.trim()) return null;
+    const row = [];
+    let inQuote = false;
+    let start = 0;
+    
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '"') {
+        inQuote = !inQuote;
+      } else if (line[i] === ',' && !inQuote) {
+        let field = line.substring(start, i);
+        // ลบ Quote ครอบหน้าหลังออก
+        if (field.startsWith('"') && field.endsWith('"')) {
+            field = field.slice(1, -1).replace(/""/g, '"');
+        }
+        row.push(field.trim());
+        start = i + 1;
+      }
+    }
+    // เก็บตก field สุดท้าย
+    let field = line.substring(start);
+    if (field.startsWith('"') && field.endsWith('"')) {
+        field = field.slice(1, -1).replace(/""/g, '"');
+    }
+    row.push(field.trim());
+    return row;
+  }).filter(row => row !== null);
 }
 </script>
 
