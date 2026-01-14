@@ -145,7 +145,8 @@
     </div>
 
     <div class="row" style="margin-top:20px">
-      <input id="q" placeholder="พิมพ์ชื่อตำแหน่งงาน หรือสาขาที่ต้องการสมัคร..." style="flex:1;min-width:240px">
+      <!-- แก้ไข Placeholder ตามที่ขอ -->
+      <input id="q" placeholder="🔍 พิมพ์ชื่อตำแหน่งงาน, สาขา, จังหวัด ที่ต้องการสมัคร..." style="flex:1;min-width:240px">
       <select id="filterBranch" style="min-width:180px"><option value="">🏢 ทุกสาขา</option></select>
       <button class="btn ghost" id="clearBtn">ล้างตัวกรอง</button>
     </div>
@@ -169,8 +170,8 @@
 <script>
 /* ================= CONFIG (ตั้งค่าตรงนี้) ================= */
 
-// 1. ใส่ลิงก์ CSV จาก Google Sheet (อัปเดตใหม่)
-const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?output=csv"; 
+// 1. ใส่ลิงก์ CSV จาก Google Sheet (อัปเดตใหม่: เจาะจงชีตแล้ว)
+const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=446304104&single=true&output=csv"; 
 
 // 2. ตั้งค่ารูปภาพ Logo (ใช้รูปใน Repo ตามที่คุณอัปโหลด)
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
@@ -224,17 +225,27 @@ async function loadData() {
     if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
     
     const text = await response.text();
-    const data = parseCSV(text); // ใช้ฟังก์ชันใหม่ที่แม่นยำกว่าเดิม
+    const data = parseCSV(text); 
 
     // แก้ไขการ Mapping ข้อมูลตามที่ขอ
-    // Column E (index 4) คือ ชื่อตำแหน่ง
-    // ตัด description ออก
-    allJobs = data.map(row => ({
-      code: row[0] || "",
-      branch: row[1] || "",
-      position: row[4] || "", // แก้เป็น Column E (Index 4)
-      status: row[3] || "Closed"
-    })).filter(job => job.position && job.branch);
+    // Column E (index 4) = ชื่อตำแหน่ง
+    // Column F (index 5) = จังหวัด
+    allJobs = data.map(row => {
+      const rawBranch = row[1] || "";
+      const province = row[5] ? row[5].trim() : ""; // ดึงข้อมูลจังหวัดจาก Column F (Index 5)
+      
+      // ต่อท้ายจังหวัดเข้ากับชื่อสาขา
+      // ตรวจสอบว่ามีจังหวัดหรือไม่ ถ้ามีให้ใส่ (จ.จังหวัด)
+      const fullBranch = province ? `${rawBranch} (จ.${province})` : rawBranch;
+
+      return {
+        code: row[0] || "",
+        branch: fullBranch, 
+        position: row[4] || "", 
+        status: row[3] || "Closed",
+        province: province // เก็บแยกไว้เผื่อใช้
+      };
+    }).filter(job => job.position && job.branch);
 
     updateBranchDropdown();
     renderJobs();
@@ -252,6 +263,7 @@ function renderJobs() {
   const branchFilter = elFilterBranch.value;
 
   const filtered = allJobs.filter(job => {
+    // ค้นหาทั้งจาก ชื่อตำแหน่ง, ชื่อสาขา และ จังหวัด (เพราะ province ถูกรวมใน branch แล้ว)
     const matchSearch = job.position.toLowerCase().includes(searchText) || 
                         job.branch.toLowerCase().includes(searchText);
     const matchBranch = branchFilter === "" || job.branch === branchFilter;
@@ -270,7 +282,7 @@ function renderJobs() {
   filtered.forEach(job => {
     const card = document.createElement("div");
     card.className = "job";
-    // ตัดส่วนรายละเอียด (Description) ออกจาก HTML
+    
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:start;">
         <span class="status-badge status-open">● เปิดรับสมัคร</span>
@@ -322,7 +334,7 @@ function updateBranchDropdown() {
   if (branches.includes(currentVal)) elFilterBranch.value = currentVal;
 }
 
-/* ฟังก์ชันแปลง CSV แบบแม่นยำ (แก้ปัญหาตัดคำผิดเมื่อมีเว้นวรรค) */
+/* ฟังก์ชันแปลง CSV แบบแม่นยำ */
 function parseCSV(text) {
   const lines = text.split(/\r?\n/);
   // ใช้ Logic Loop แทน Regex เพื่อความแม่นยำในการนับ Column
