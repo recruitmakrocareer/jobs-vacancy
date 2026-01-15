@@ -145,9 +145,15 @@
     </div>
 
     <div class="row" style="margin-top:20px">
-      <!-- แก้ไข Placeholder ตามที่ขอ -->
+      <!-- ช่องค้นหา -->
       <input id="q" placeholder="🔍 พิมพ์ชื่อตำแหน่งงาน, สาขา, จังหวัด ที่ต้องการสมัคร..." style="flex:1;min-width:240px">
+      
+      <!-- Dropdown จังหวัด (เพิ่มใหม่) -->
+      <select id="filterProvince" style="min-width:160px"><option value="">📍 ทุกจังหวัด</option></select>
+      
+      <!-- Dropdown สาขา -->
       <select id="filterBranch" style="min-width:180px"><option value="">🏢 ทุกสาขา</option></select>
+      
       <button class="btn ghost" id="clearBtn">ล้างตัวกรอง</button>
     </div>
   </section>
@@ -183,10 +189,10 @@ const FORM_BASE_URL = "https://forms.office.com/r/wabJfczd4Z";
 
 /* ตัวแปร Global เก็บข้อมูล */
 let allJobs = [];
-let branches = new Set();
 
 /* DOM Elements */
 const elQ = document.getElementById("q");
+const elFilterProvince = document.getElementById("filterProvince"); // เพิ่มตัวแปร
 const elFilterBranch = document.getElementById("filterBranch");
 const elClearBtn = document.getElementById("clearBtn");
 const elStatus = document.getElementById("statusMsg");
@@ -206,9 +212,12 @@ async function init() {
   await loadData();
   
   elQ.addEventListener("input", renderJobs);
+  elFilterProvince.addEventListener("change", renderJobs); // เพิ่ม Event Listener
   elFilterBranch.addEventListener("change", renderJobs);
+  
   elClearBtn.addEventListener("click", () => {
     elQ.value = "";
+    elFilterProvince.value = "";
     elFilterBranch.value = "";
     renderJobs();
   });
@@ -225,7 +234,11 @@ async function loadData() {
     if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
     
     const text = await response.text();
-    const data = parseCSV(text); 
+    const allRows = parseCSV(text); 
+    
+    // แก้ไข: ตัด Header Row (แถวแรก) ออกก่อนนำไปใช้งาน
+    // เพื่อไม่ให้ชื่อหัวตารางไปโผล่ใน Dropdown
+    const data = allRows.slice(1);
 
     // แก้ไขการ Mapping ข้อมูลตามที่ขอ
     // Column E (index 4) = ชื่อตำแหน่ง
@@ -235,7 +248,6 @@ async function loadData() {
       const province = row[5] ? row[5].trim() : ""; // ดึงข้อมูลจังหวัดจาก Column F (Index 5)
       
       // ต่อท้ายจังหวัดเข้ากับชื่อสาขา
-      // ตรวจสอบว่ามีจังหวัดหรือไม่ ถ้ามีให้ใส่ (จ.จังหวัด)
       const fullBranch = province ? `${rawBranch} (จ.${province})` : rawBranch;
 
       return {
@@ -247,8 +259,10 @@ async function loadData() {
       };
     }).filter(job => job.position && job.branch);
 
-    updateBranchDropdown();
+    updateProvinceDropdown(); // สร้างตัวเลือกจังหวัด
+    updateBranchDropdown();   // สร้างตัวเลือกสาขา
     renderJobs();
+    
     elStatus.textContent = `พบตำแหน่งงานว่าง ${allJobs.length} อัตรา (อัปเดต: ${new Date().toLocaleTimeString('th-TH')})`;
 
   } catch (error) {
@@ -260,16 +274,24 @@ async function loadData() {
 /* ฟังก์ชันแสดงผลการ์ดงาน */
 function renderJobs() {
   const searchText = elQ.value.toLowerCase();
-  const branchFilter = elFilterBranch.value;
+  const provinceFilter = elFilterProvince.value; // ค่าจังหวัดที่เลือก
+  const branchFilter = elFilterBranch.value;     // ค่าสาขาที่เลือก
 
   const filtered = allJobs.filter(job => {
-    // ค้นหาทั้งจาก ชื่อตำแหน่ง, ชื่อสาขา และ จังหวัด (เพราะ province ถูกรวมใน branch แล้ว)
+    // 1. กรองจากช่องค้นหา (หาใน ชื่อตำแหน่ง, สาขา, จังหวัด)
     const matchSearch = job.position.toLowerCase().includes(searchText) || 
                         job.branch.toLowerCase().includes(searchText);
+    
+    // 2. กรองจาก Dropdown จังหวัด (ต้องตรงกับจังหวัดที่เลือก หรือเป็นค่าว่าง)
+    const matchProvince = provinceFilter === "" || job.province === provinceFilter;
+
+    // 3. กรองจาก Dropdown สาขา
     const matchBranch = branchFilter === "" || job.branch === branchFilter;
+    
+    // 4. สถานะต้อง Open
     const matchStatus = job.status.toLowerCase().trim() === "open";
 
-    return matchSearch && matchBranch && matchStatus;
+    return matchSearch && matchProvince && matchBranch && matchStatus;
   });
 
   elJobs.innerHTML = "";
@@ -286,7 +308,6 @@ function renderJobs() {
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:start;">
         <span class="status-badge status-open">● เปิดรับสมัคร</span>
-        <!-- ลบส่วน REF ออกตามที่ขอ -->
       </div>
       
       <h3>${job.position}</h3>
@@ -309,7 +330,6 @@ window.openApplyForm = function(position, branch) {
   elApplyPositionName.textContent = `${position} (${branch})`;
   elApplySection.scrollIntoView({ behavior: "smooth" });
   
-  // เพิ่มปุ่มสำรองสำหรับ Mobile (แก้ปัญหา iframe ไม่โหลดบน Android/iOS)
   elIframeContainer.innerHTML = `
     <div style="text-align:center; margin-bottom:12px;">
        <a href="${FORM_BASE_URL}" target="_blank" class="btn ghost" style="display:inline-flex; align-items:center; gap:6px; font-size:14px; color:#4b5563; background:#f3f4f6; border:1px solid #e5e7eb;">
@@ -320,10 +340,28 @@ window.openApplyForm = function(position, branch) {
   `;
 }
 
+/* ฟังก์ชันอัปเดต Dropdown จังหวัด */
+function updateProvinceDropdown() {
+  // ดึงรายชื่อจังหวัดที่ไม่ซ้ำ และไม่ว่าง
+  const provinces = [...new Set(allJobs.map(j => j.province).filter(p => p))].sort();
+  const currentVal = elFilterProvince.value;
+  
+  elFilterProvince.innerHTML = '<option value="">📍 ทุกจังหวัด</option>';
+  provinces.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p;
+    opt.textContent = p;
+    elFilterProvince.appendChild(opt);
+  });
+  
+  if (provinces.includes(currentVal)) elFilterProvince.value = currentVal;
+}
+
 /* ฟังก์ชันอัปเดต Dropdown สาขา */
 function updateBranchDropdown() {
   const branches = [...new Set(allJobs.map(j => j.branch))].sort();
   const currentVal = elFilterBranch.value;
+  
   elFilterBranch.innerHTML = '<option value="">🏢 ทุกสาขา</option>';
   branches.forEach(b => {
     const opt = document.createElement("option");
@@ -331,13 +369,13 @@ function updateBranchDropdown() {
     opt.textContent = b;
     elFilterBranch.appendChild(opt);
   });
+  
   if (branches.includes(currentVal)) elFilterBranch.value = currentVal;
 }
 
 /* ฟังก์ชันแปลง CSV แบบแม่นยำ */
 function parseCSV(text) {
   const lines = text.split(/\r?\n/);
-  // ใช้ Logic Loop แทน Regex เพื่อความแม่นยำในการนับ Column
   return lines.map(line => {
     if (!line.trim()) return null;
     const row = [];
@@ -349,7 +387,6 @@ function parseCSV(text) {
         inQuote = !inQuote;
       } else if (line[i] === ',' && !inQuote) {
         let field = line.substring(start, i);
-        // ลบ Quote ครอบหน้าหลังออก
         if (field.startsWith('"') && field.endsWith('"')) {
             field = field.slice(1, -1).replace(/""/g, '"');
         }
@@ -357,7 +394,6 @@ function parseCSV(text) {
         start = i + 1;
       }
     }
-    // เก็บตก field สุดท้าย
     let field = line.substring(start);
     if (field.startsWith('"') && field.endsWith('"')) {
         field = field.slice(1, -1).replace(/""/g, '"');
