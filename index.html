@@ -183,14 +183,13 @@
 <script>
 /* ================= CONFIG ================= */
 
-// ใส่ลิงก์ CSV ของชีต WebExport (ที่มี Col A-H ครบแล้ว)
 const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=2065374453&single=true&output=csv"; 
 
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
 
-// 3. Microsoft Form Links (แยกตามตำแหน่ง)
-const FORM_BASE_URL = "https://forms.office.com/r/wabJfczd4Z"; // ฟอร์มมาตรฐาน
-const FORM_ORDER_PICKER_URL = "https://forms.office.com/r/zdLQKYiYPz"; // ฟอร์มเฉพาะพนักงานจัดออเดอร์
+// Microsoft Form Links
+const FORM_BASE_URL = "https://forms.office.com/r/wabJfczd4Z"; 
+const FORM_ORDER_PICKER_URL = "https://forms.office.com/r/zdLQKYiYPz";
 
 /* ================= LOGIC ================= */
 
@@ -220,11 +219,23 @@ async function init() {
   await loadData();
   
   elQ.addEventListener("input", renderJobs);
-  elFilterProvince.addEventListener("change", renderJobs);
-  elFilterBranch.addEventListener("change", renderJobs);
-  elClearBtn.addEventListener("click", () => {
-    elQ.value = ""; elFilterProvince.value = ""; elFilterBranch.value = ""; renderJobs();
+  
+  // เชื่อม Dropdown จังหวัด -> สาขา
+  elFilterProvince.addEventListener("change", () => {
+    updateBranchDropdown(); 
+    renderJobs();           
   });
+  
+  elFilterBranch.addEventListener("change", renderJobs);
+  
+  elClearBtn.addEventListener("click", () => {
+    elQ.value = ""; 
+    elFilterProvince.value = ""; 
+    updateBranchDropdown(); // Reset สาขาเป็นทั้งหมด
+    elFilterBranch.value = ""; 
+    renderJobs();
+  });
+  
   elRefreshBtn.addEventListener("click", loadData);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
 }
@@ -240,7 +251,6 @@ async function loadData() {
     const data = allRows.slice(1);
 
     allJobs = data.map((row, index) => {
-      // Mapping: A(0)Code, B(1)Branch, C(2)PosGroup, D(3)Status, E(4)PosName, F(5)Province, G(6)Desc, H(7)Qual, I(8)Salary
       const rawBranch = row[1] || "";
       const province = row[5] ? row[5].trim() : "";
       const fullBranch = province ? `${rawBranch} (จ.${province})` : rawBranch;
@@ -254,13 +264,15 @@ async function loadData() {
         province: province,
         desc: row[6] || "", 
         qual: row[7] || "",
-        salary: row[8] ? row[8].trim() : "" // Column I (Index 8)
+        salary: row[8] ? row[8].trim() : "" 
       };
     }).filter(job => job.position && job.branch);
 
     updateProvinceDropdown();
     updateBranchDropdown();
     renderJobs();
+    
+    // อัปเดตข้อความเริ่มต้น (ยังไม่มีการกรอง)
     elStatus.textContent = `พบตำแหน่งงานว่าง ${allJobs.length} อัตรา (อัปเดต: ${new Date().toLocaleTimeString('th-TH')})`;
   } catch (error) {
     console.error(error);
@@ -285,8 +297,41 @@ function renderJobs() {
   });
 
   elJobs.innerHTML = "";
+  
+  // === ปรับปรุง Wording สถานะแบบ Dynamic ===
+  if (filtered.length > 0) {
+    let statusText = "พบตำแหน่งงานว่าง";
+    
+    // ถ้ามีการเลือกจังหวัด
+    if (provinceFilter) {
+      statusText += ` จังหวัด${provinceFilter}`;
+    }
+    
+    // ถ้ามีการเลือกสาขา
+    if (branchFilter) {
+      // ตัดคำว่า (จ.จังหวัด) ออกจากชื่อสาขาเพื่อความสวยงามในประโยค (ถ้ามี)
+      let displayBranch = branchFilter.split(' (จ.')[0]; 
+      statusText += ` ที่${displayBranch}`;
+    }
+    
+    // ถ้ามีการพิมพ์ค้นหา
+    if (searchText) {
+      statusText += ` (คำค้น: "${elQ.value}")`;
+    }
 
-  if (filtered.length === 0) {
+    // ถ้าไม่มีการกรองเลย (เลือกทั้งหมด)
+    if (!provinceFilter && !branchFilter && !searchText) {
+      statusText += "ทั้งหมด";
+    }
+    
+    statusText += ` จำนวน <span style="color:#ED1C24; font-weight:bold; font-size:1.1em;">${filtered.length}</span> อัตรา`;
+    
+    // เพิ่มเวลาอัปเดตท้ายประโยค (ถ้าต้องการ)
+    statusText += ` <span class="muted" style="font-size:0.9em; font-weight:normal;">(ข้อมูลล่าสุด: ${new Date().toLocaleTimeString('th-TH')})</span>`;
+
+    elStatus.innerHTML = statusText;
+  } else {
+    elStatus.textContent = `ไม่พบตำแหน่งงานที่ค้นหา`;
     elJobs.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;opacity:0.6">ไม่พบตำแหน่งงานที่ค้นหา</div>`;
     return;
   }
@@ -295,7 +340,6 @@ function renderJobs() {
     const card = document.createElement("div");
     card.className = "job";
     
-    // Check if salary exists
     const salaryHtml = job.salary ? `<div class="salary-text">💰 ${job.salary}</div>` : '';
 
     card.innerHTML = `
@@ -370,7 +414,6 @@ window.openApplyForm = function(position, branch) {
   elApplyPositionName.textContent = `${position} (${branch})`;
   elApplySection.scrollIntoView({ behavior: "smooth" });
   
-  // เลือกแบบฟอร์มตามตำแหน่ง (แก้ไขให้ตรงกับชื่อใหม่)
   let targetFormUrl = FORM_BASE_URL;
   if (position.trim() === "พนักงานจัดออเดอร์สินค้า (Picker)") {
     targetFormUrl = FORM_ORDER_PICKER_URL;
@@ -397,15 +440,31 @@ function updateProvinceDropdown() {
   if (provinces.includes(currentVal)) elFilterProvince.value = currentVal;
 }
 
+// อัปเดตฟังก์ชันนี้: กรองสาขาตามจังหวัดที่เลือก
 function updateBranchDropdown() {
-  const branches = [...new Set(allJobs.map(j => j.branch))].sort();
-  const currentVal = elFilterBranch.value;
+  const selectedProvince = elFilterProvince.value;
+  const currentBranchVal = elFilterBranch.value;
+
+  // กรอง: ถ้าเลือกจังหวัด ให้เอาเฉพาะสาขาในจังหวัดนั้น
+  let filteredJobs = allJobs;
+  if (selectedProvince) {
+    filteredJobs = allJobs.filter(job => job.province === selectedProvince);
+  }
+
+  const branches = [...new Set(filteredJobs.map(j => j.branch))].sort();
+  
   elFilterBranch.innerHTML = '<option value="">🏢 ทุกสาขา</option>';
   branches.forEach(b => {
     const opt = document.createElement("option");
     opt.value = b; opt.textContent = b; elFilterBranch.appendChild(opt);
   });
-  if (branches.includes(currentVal)) elFilterBranch.value = currentVal;
+  
+  // เช็คว่าค่าเดิมยังอยู่ไหม
+  if (branches.includes(currentBranchVal)) {
+    elFilterBranch.value = currentBranchVal;
+  } else {
+    elFilterBranch.value = "";
+  }
 }
 
 function parseCSV(text) {
