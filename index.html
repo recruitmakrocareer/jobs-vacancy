@@ -47,7 +47,6 @@
     header h1 { margin:0 0 8px; font-size:38px; line-height: 1.1; font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     header p { margin:0; font-size:18px; opacity:.92; font-weight: 400; }
 
-    /* Header Stats Bar */
     .header-stats {
       background: rgba(0,0,0,0.15); padding: 14px 18px; position: relative; z-index: 1;
       backdrop-filter: blur(10px);
@@ -61,6 +60,8 @@
       header h1 { font-size: 28px; }
       header .logo { width: 120px; height: auto; padding: 10px 16px; }
       .header-stats .wrap { justify-content: center; }
+      .sort-bar { flex-direction: column; align-items: flex-start !important; }
+      .pagination { flex-wrap: wrap; }
     }
 
     /* === Content === */
@@ -69,7 +70,6 @@
     .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     
     .pill { background: var(--makro-red-light); color:var(--makro-red-dark); font-weight:700; font-size:13px; padding:6px 14px; border-radius:999px; letter-spacing: 0.3px; display: inline-flex; align-items: center; gap: 6px; }
-
     .muted { opacity:.6; font-size: 14px; }
 
     input, select { padding:12px 16px; border-radius:12px; border:1px solid #e5e7eb; font-size:15px; background:#fff; transition: all var(--transition); font-family: inherit; }
@@ -114,13 +114,27 @@
     
     .meta { font-size:14px; color: #6b7280; margin-bottom: 16px; flex: 1; }
     .meta div { margin:6px 0; display:flex; align-items:center; gap:8px; }
-    
     .salary-text { color: #059669; font-weight: 600; }
 
     .status-badge { display:inline-flex; align-items: center; gap:4px; font-size:12px; padding:4px 10px; border-radius:6px; font-weight:600; letter-spacing: 0.3px; }
     .status-open { background:#ecfdf5; color:#059669; border: 1px solid #d1fae5; }
 
-    .job-actions-top { position: absolute; top: 16px; right: 16px; display: flex; gap: 4px; }
+    /* === Pagination === */
+    .pagination {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin-top: 24px; padding-top: 20px; border-top: 1px solid #f3f4f6;
+    }
+    .page-btn {
+      min-width: 40px; height: 40px; border: 1px solid #e5e7eb; background: #fff;
+      border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
+      color: #6b7280; transition: all var(--transition); font-family: inherit;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .page-btn:hover:not(:disabled):not(.active) { border-color: var(--makro-red); color: var(--makro-red); background: var(--makro-red-light); }
+    .page-btn.active { background: var(--makro-red); color: #fff; border-color: var(--makro-red); }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-btn.nav { padding: 0 14px; font-size: 13px; }
+    .page-info { font-size: 13px; color: #9ca3af; margin: 0 8px; }
 
     /* === Modal / Popup === */
     .modal-overlay {
@@ -160,9 +174,39 @@
 
     .modal-section-title { font-weight: 700; color: #111827; font-size: 16px; margin: 24px 0 10px; display: flex; align-items: center; gap: 8px; }
     .modal-section-title:first-child { margin-top: 0; }
-    
     .modal-body ul { margin: 0; padding-left: 20px; }
     .modal-body li { margin-bottom: 8px; }
+
+    /* === Apply Form Modal (Full-screen overlay) === */
+    .apply-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6); z-index: 1000;
+      display: none; justify-content: center; align-items: center;
+      padding: 16px; backdrop-filter: blur(6px);
+    }
+    .apply-modal-overlay.active { display: flex; animation: fadeIn 0.25s ease-out; }
+    
+    .apply-modal-content {
+      background: #fff; width: 100%; max-width: 800px; height: 92vh;
+      border-radius: 20px; overflow: hidden; position: relative;
+      display: flex; flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    }
+    .apply-modal-header {
+      padding: 18px 24px; border-bottom: 1px solid #f3f4f6;
+      display: flex; justify-content: space-between; align-items: center;
+      background: #fff; flex-shrink: 0;
+    }
+    .apply-modal-header .position-info { flex: 1; }
+    .apply-modal-header .position-info h3 { margin: 0; font-size: 16px; color: #111827; }
+    .apply-modal-header .position-info .branch-info { font-size: 13px; color: #6b7280; margin-top: 2px; }
+    .apply-modal-body { flex: 1; overflow: hidden; position: relative; }
+    .apply-modal-body iframe { width: 100%; height: 100%; border: 0; }
+    .apply-modal-footer {
+      padding: 12px 24px; border-top: 1px solid #f3f4f6;
+      background: #f9fafb; display: flex; gap: 12px; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
+    }
 
     /* === Toast === */
     .toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; }
@@ -198,7 +242,6 @@
     .footer-section a:hover { color: #fff; }
     .footer-bottom { border-top: 1px solid #374151; padding-top: 20px; text-align: center; font-size: 13px; }
 
-    iframe { width:100%; height:900px; border:0; border-radius: var(--card-radius); background:#fff; margin-top:12px; border: 1px solid #e5e7eb; }
     .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--makro-red); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 30px auto; }
     
     /* === Empty State === */
@@ -294,22 +337,11 @@
       </div>
     </div>
     <div id="jobs" class="grid"></div>
-  </section>
-
-  <!-- Apply Section (Hidden) -->
-  <section class="card" id="applySection" style="display:none;">
-    <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:12px;">
-      <div>
-        <span class="pill">📝 ใบสมัครงาน</span>
-        <p class="muted" style="margin-top:8px">กรอกข้อมูลด้านล่างเพื่อสมัครในตำแหน่ง: <b id="applyPositionName" style="color:var(--makro-red)">...</b></p>
-      </div>
-      <button class="btn ghost sm" onclick="document.getElementById('applySection').style.display='none'">✕ ปิดฟอร์ม</button>
-    </div>
-    <div id="iframeContainer"></div>
+    <div id="paginationContainer"></div>
   </section>
 </main>
 
-<!-- Modal -->
+<!-- Job Detail Modal -->
 <div id="jobModal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
@@ -330,6 +362,28 @@
       <div class="modal-footer-right">
         <button class="btn ghost" onclick="closeModal()">ปิดหน้าต่าง</button>
         <button class="btn primary" id="modalApplyBtn">สมัครตำแหน่งนี้</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Apply Form Modal (Popup) -->
+<div id="applyModal" class="apply-modal-overlay">
+  <div class="apply-modal-content">
+    <div class="apply-modal-header">
+      <div class="position-info">
+        <h3>📝 ใบสมัครงาน</h3>
+        <div class="branch-info" id="applyModalPosition">...</div>
+      </div>
+      <button class="close-modal" onclick="closeApplyModal()">✕</button>
+    </div>
+    <div class="apply-modal-body" id="applyModalBody">
+    </div>
+    <div class="apply-modal-footer">
+      <span class="muted" style="font-size:13px">กรอกข้อมูลให้ครบถ้วนแล้วกดส่งในแบบฟอร์ม</span>
+      <div style="display:flex; gap:8px;">
+        <a id="applyFormNewTab" href="#" target="_blank" class="btn outline sm">เปิดในแท็บใหม่</a>
+        <button class="btn ghost sm" onclick="closeApplyModal()">ปิด</button>
       </div>
     </div>
   </div>
@@ -372,18 +426,21 @@ const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
 
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
 
-// Microsoft Form Links
 const FORM_BASE_URL = "https://forms.office.com/r/wabJfczd4Z"; 
 const FORM_ORDER_PICKER_URL = "https://forms.office.com/r/zdLQKYiYPz";
+
+const JOBS_PER_PAGE = 20;
 
 /* ================= STATE ================= */
 
 let allJobs = [];
 let currentTab = "all";
 let currentSort = "default";
+let currentPage = 1;
 let favorites = JSON.parse(localStorage.getItem("makro_favorites") || "[]");
 let recentlyViewed = JSON.parse(localStorage.getItem("makro_recent") || "[]");
 let currentModalJobId = null;
+let lastFilteredJobs = [];
 
 /* ================= DOM ELEMENTS ================= */
 
@@ -394,9 +451,7 @@ const elClearBtn = document.getElementById("clearBtn");
 const elStatus = document.getElementById("statusMsg");
 const elJobs = document.getElementById("jobs");
 const elRefreshBtn = document.getElementById("refreshBtn");
-const elApplySection = document.getElementById("applySection");
-const elApplyPositionName = document.getElementById("applyPositionName");
-const elIframeContainer = document.getElementById("iframeContainer");
+const elPagination = document.getElementById("paginationContainer");
 
 const modalOverlay = document.getElementById("jobModal");
 const modalTitle = document.getElementById("modalTitle");
@@ -404,6 +459,8 @@ const modalBranch = document.getElementById("modalBranch");
 const modalSalary = document.getElementById("modalSalary");
 const modalBody = document.getElementById("modalBody");
 const modalApplyBtn = document.getElementById("modalApplyBtn");
+
+const applyModalOverlay = document.getElementById("applyModal");
 
 const backToTopBtn = document.getElementById("backToTop");
 
@@ -415,33 +472,41 @@ async function init() {
   if (COMPANY_LOGO_URL) document.getElementById("companyLogo").src = COMPANY_LOGO_URL;
   await loadData();
   
-  elQ.addEventListener("input", renderJobs);
+  elQ.addEventListener("input", () => { currentPage = 1; renderJobs(); });
   
   elFilterProvince.addEventListener("change", () => {
+    currentPage = 1;
     updateBranchDropdown(); 
     renderJobs();           
   });
   
-  elFilterBranch.addEventListener("change", renderJobs);
+  elFilterBranch.addEventListener("change", () => { currentPage = 1; renderJobs(); });
   
   elClearBtn.addEventListener("click", () => {
     elQ.value = ""; 
     elFilterProvince.value = ""; 
     updateBranchDropdown();
     elFilterBranch.value = ""; 
+    currentPage = 1;
     renderJobs();
   });
   
   elRefreshBtn.addEventListener("click", loadData);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
+  applyModalOverlay.addEventListener("click", (e) => { if (e.target === applyModalOverlay) closeApplyModal(); });
 
-  // Keyboard shortcut: Escape closes modal
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (applyModalOverlay.classList.contains("active")) closeApplyModal();
+      else closeModal();
+    }
+  });
 
   // Tabs
   document.querySelectorAll(".tab").forEach(tab => {
     tab.addEventListener("click", () => {
       currentTab = tab.dataset.tab;
+      currentPage = 1;
       document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
       renderJobs();
@@ -452,6 +517,7 @@ async function init() {
   document.querySelectorAll(".sort-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       currentSort = btn.dataset.sort;
+      currentPage = 1;
       document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       renderJobs();
@@ -469,6 +535,7 @@ async function init() {
 async function loadData() {
   elStatus.innerHTML = '<div class="loader"></div>';
   elJobs.innerHTML = "";
+  elPagination.innerHTML = "";
   try {
     const response = await fetch(GOOGLE_SHEET_CSV_URL);
     if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
@@ -494,6 +561,7 @@ async function loadData() {
       };
     }).filter(job => job.position && job.branch);
 
+    currentPage = 1;
     updateProvinceDropdown();
     updateBranchDropdown();
     updateHeaderStats();
@@ -522,7 +590,6 @@ function renderJobs() {
   const provinceFilter = elFilterProvince.value;
   const branchFilter = elFilterBranch.value;
 
-  // Base filter: open jobs matching search
   let filtered = allJobs.filter(job => {
     const matchSearch = job.position.toLowerCase().includes(searchText) || 
                         job.branch.toLowerCase().includes(searchText) ||
@@ -554,31 +621,16 @@ function renderJobs() {
   } else if (currentSort === "branch") {
     filtered.sort((a, b) => a.branch.localeCompare(b.branch, 'th'));
   } else if (currentSort === "salary") {
-    filtered.sort((a, b) => {
-      const sa = parseSalaryForSort(a.salary);
-      const sb = parseSalaryForSort(b.salary);
-      return sb - sa; // highest first
-    });
+    filtered.sort((a, b) => parseSalaryForSort(b.salary) - parseSalaryForSort(a.salary));
   }
 
+  lastFilteredJobs = filtered;
   elJobs.innerHTML = "";
+  elPagination.innerHTML = "";
 
-  // Status text
-  if (filtered.length > 0) {
-    let statusText = "พบตำแหน่งงานว่าง";
-    if (provinceFilter) statusText += " จังหวัด" + provinceFilter;
-    if (branchFilter) {
-      let displayBranch = branchFilter.split(' (จ.')[0]; 
-      statusText += " ที่" + displayBranch;
-    }
-    if (searchText) statusText += ' (คำค้น: "' + elQ.value + '")';
-    if (!provinceFilter && !branchFilter && !searchText) statusText += "ทั้งหมด";
-    statusText += ' จำนวน <span style="color:#ED1C24; font-weight:bold; font-size:1.1em;">' + filtered.length + '</span> อัตรา';
-    statusText += ' <span class="muted" style="font-size:0.9em;">(ข้อมูลล่าสุด: ' + new Date().toLocaleTimeString('th-TH') + ')</span>';
-    elStatus.innerHTML = statusText;
-  } else {
+  // Empty state
+  if (filtered.length === 0) {
     elStatus.textContent = "";
-    
     let emptyMsg = "ไม่พบตำแหน่งงานที่ค้นหา";
     let emptyIcon = "🔍";
     let emptyHint = "ลองค้นหาด้วยคำอื่น หรือล้างตัวกรอง";
@@ -600,7 +652,30 @@ function renderJobs() {
     return;
   }
 
-  filtered.forEach((job, i) => {
+  // Pagination calc
+  const totalPages = Math.ceil(filtered.length / JOBS_PER_PAGE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const startIdx = (currentPage - 1) * JOBS_PER_PAGE;
+  const endIdx = Math.min(startIdx + JOBS_PER_PAGE, filtered.length);
+  const pageJobs = filtered.slice(startIdx, endIdx);
+
+  // Status text
+  let statusText = "พบตำแหน่งงานว่าง";
+  if (provinceFilter) statusText += " จังหวัด" + provinceFilter;
+  if (branchFilter) {
+    statusText += " ที่" + branchFilter.split(' (จ.')[0];
+  }
+  if (searchText) statusText += ' (คำค้น: "' + elQ.value + '")';
+  if (!provinceFilter && !branchFilter && !searchText) statusText += "ทั้งหมด";
+  statusText += ' จำนวน <span style="color:#ED1C24; font-weight:bold; font-size:1.1em;">' + filtered.length + '</span> อัตรา';
+  if (totalPages > 1) {
+    statusText += ' <span class="muted" style="font-size:0.9em;">(หน้า ' + currentPage + '/' + totalPages + ' แสดง ' + (startIdx+1) + '-' + endIdx + ')</span>';
+  }
+  elStatus.innerHTML = statusText;
+
+  // Render page jobs
+  pageJobs.forEach((job, i) => {
     const card = document.createElement("div");
     card.className = "job";
     card.style.animationDelay = Math.min(i * 0.04, 0.4) + "s";
@@ -612,7 +687,7 @@ function renderJobs() {
     card.innerHTML = 
       '<div style="display:flex;justify-content:space-between;align-items:start;">' +
         '<span class="status-badge status-open">● เปิดรับสมัคร</span>' +
-        '<div class="job-actions-top" style="position:static">' +
+        '<div style="display:flex;gap:4px;">' +
           '<button class="btn icon-btn outline' + favClass + '" onclick="event.stopPropagation();toggleFavorite(' + job.id + ',this)" title="บันทึก">' +
             (isFav ? '❤️' : '🤍') +
           '</button>' +
@@ -630,7 +705,63 @@ function renderJobs() {
       '</div>';
     elJobs.appendChild(card);
   });
+
+  // Render pagination
+  if (totalPages > 1) {
+    renderPagination(totalPages);
+  }
 }
+
+/* ================= PAGINATION ================= */
+
+function renderPagination(totalPages) {
+  let html = '<div class="pagination">';
+  
+  // Prev button
+  html += '<button class="page-btn nav" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>← ก่อนหน้า</button>';
+  
+  // Page numbers with smart truncation
+  const pages = getPageNumbers(currentPage, totalPages);
+  pages.forEach(p => {
+    if (p === '...') {
+      html += '<span class="page-info">...</span>';
+    } else {
+      html += '<button class="page-btn' + (p === currentPage ? ' active' : '') + '" onclick="goToPage(' + p + ')">' + p + '</button>';
+    }
+  });
+  
+  // Next button
+  html += '<button class="page-btn nav" onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>ถัดไป →</button>';
+  
+  html += '</div>';
+  elPagination.innerHTML = html;
+}
+
+function getPageNumbers(current, total) {
+  if (total <= 7) {
+    return Array.from({length: total}, (_, i) => i + 1);
+  }
+  const pages = [];
+  pages.push(1);
+  if (current > 3) pages.push('...');
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+    pages.push(i);
+  }
+  if (current < total - 2) pages.push('...');
+  pages.push(total);
+  return pages;
+}
+
+function goToPage(page) {
+  const totalPages = Math.ceil(lastFilteredJobs.length / JOBS_PER_PAGE);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderJobs();
+  // Scroll to top of jobs section
+  document.querySelector('.tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ================= HELPERS ================= */
 
 function escapeQuotes(str) {
   return str.replace(/'/g, "\\'").replace(/"/g, "&quot;");
@@ -658,9 +789,7 @@ function toggleFavorite(id, btnEl) {
   }
   localStorage.setItem("makro_favorites", JSON.stringify(favorites));
   updateHeaderStats();
-  // Update tab counts
   document.getElementById("countSaved").textContent = allJobs.filter(j => j.status.toLowerCase().trim() === "open" && favorites.includes(j.id)).length;
-  // If on saved tab, re-render
   if (currentTab === "saved") renderJobs();
 }
 
@@ -713,7 +842,7 @@ function shareFromModal() {
   if (currentModalJobId !== null) shareJob(currentModalJobId);
 }
 
-/* ================= MODAL ================= */
+/* ================= JOB DETAIL MODAL ================= */
 
 function openJobModal(id) {
   const job = allJobs.find(j => j.id === id);
@@ -754,25 +883,26 @@ function closeModal() {
   currentModalJobId = null;
 }
 
-/* ================= APPLY FORM ================= */
+/* ================= APPLY FORM MODAL ================= */
 
 window.openApplyForm = function(position, branch) {
-  elApplySection.style.display = "block";
-  elApplyPositionName.textContent = position + " (" + branch + ")";
-  elApplySection.scrollIntoView({ behavior: "smooth" });
-  
   let targetFormUrl = FORM_BASE_URL;
   if (position.trim() === "พนักงานจัดออเดอร์สินค้า (Picker)") {
     targetFormUrl = FORM_ORDER_PICKER_URL;
   }
 
-  elIframeContainer.innerHTML = 
-    '<div style="text-align:center; margin-bottom:12px;">' +
-      '<a href="' + targetFormUrl + '" target="_blank" class="btn ghost sm" style="display:inline-flex; align-items:center; gap:6px; font-size:14px;">' +
-        '<span>⚠️ หากแบบฟอร์มไม่แสดง</span> <span style="text-decoration:underline; font-weight:bold;">คลิกที่นี่เพื่อเปิดฟอร์มในหน้าต่างใหม่</span>' +
-      '</a>' +
-    '</div>' +
-    '<iframe src="' + targetFormUrl + '" allowfullscreen></iframe>';
+  document.getElementById("applyModalPosition").textContent = "ตำแหน่ง: " + position + " (" + branch + ")";
+  document.getElementById("applyFormNewTab").href = targetFormUrl;
+  document.getElementById("applyModalBody").innerHTML = '<iframe src="' + targetFormUrl + '" allowfullscreen></iframe>';
+
+  applyModalOverlay.classList.add("active");
+  document.body.style.overflow = 'hidden';
+}
+
+function closeApplyModal() {
+  applyModalOverlay.classList.remove("active");
+  document.body.style.overflow = '';
+  document.getElementById("applyModalBody").innerHTML = '';
 }
 
 /* ================= TOAST ================= */
@@ -829,7 +959,7 @@ function updateBranchDropdown() {
   }
 }
 
-/* ================= HELPERS ================= */
+/* ================= TEXT HELPERS ================= */
 
 function formatTextToFullList(text) {
   if (!text) return "";
