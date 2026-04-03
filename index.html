@@ -4,181 +4,420 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ร่วมงานกับเรา - Makro</title>
-
+  <meta name="description" content="ค้นหาตำแหน่งงานว่างและสมัครงานออนไลน์กับ Makro">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root { 
       --max: 1100px; 
       --makro-red: #ED1C24; 
       --makro-red-dark: #c41219;
+      --makro-red-light: #fff1f2;
       --bg-color: #f6f7fb;
+      --card-shadow: 0 10px 30px rgba(0,0,0,.04);
+      --card-radius: 16px;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg-color); color:#111; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: 'Noto Sans Thai', system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg-color); color:#111; line-height: 1.6; }
     
     /* === Header === */
     header { 
-      padding:40px 18px; 
-      color:#fff; 
-      background: linear-gradient(135deg, var(--makro-red) 0%, #ff4d4d 100%); 
-      box-shadow: 0 4px 20px rgba(237, 28, 36, 0.2);
+      padding: 0; color:#fff; 
+      background: linear-gradient(135deg, var(--makro-red) 0%, #ff4d4d 50%, #ff6b6b 100%); 
+      box-shadow: 0 4px 20px rgba(237, 28, 36, 0.25);
+      position: relative; overflow: hidden;
     }
-    header .wrap { max-width: var(--max); margin:auto; display: flex; align-items: center; gap: 24px; justify-content: space-between; }
-    header .logo { width: 140px; height: 80px; object-fit: contain; background: #fff; border-radius: 12px; padding: 12px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0; }
+    header::before {
+      content: ''; position: absolute; top: -50%; right: -10%; width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    header::after {
+      content: ''; position: absolute; bottom: -30%; left: -5%; width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .header-inner { padding: 48px 18px 44px; position: relative; z-index: 1; }
+    header .wrap { max-width: var(--max); margin:auto; display: flex; align-items: center; gap: 28px; justify-content: space-between; }
+    header .logo { width: 140px; height: 80px; object-fit: contain; background: #fff; border-radius: 14px; padding: 12px 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); flex-shrink: 0; transition: transform 0.3s; }
+    header .logo:hover { transform: scale(1.05); }
     header .header-text { flex: 1; }
-    header h1 { margin:0 0 8px; font-size:36px; line-height: 1.1; font-weight: 800; letter-spacing: -0.5px; }
-    header p { margin:0; font-size:18px; opacity:.95; font-weight: 400; }
+    header h1 { margin:0 0 8px; font-size:38px; line-height: 1.1; font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    header p { margin:0; font-size:18px; opacity:.92; font-weight: 400; }
+
+    .header-stats {
+      background: rgba(0,0,0,0.15); padding: 14px 18px; position: relative; z-index: 1;
+      backdrop-filter: blur(10px);
+    }
+    .header-stats .wrap { max-width: var(--max); margin: auto; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+    .stat-item { display: flex; align-items: center; gap: 8px; font-size: 14px; opacity: 0.95; }
+    .stat-number { font-weight: 700; font-size: 18px; }
 
     @media (max-width: 600px) {
       header .wrap { flex-direction: column-reverse; text-align: center; gap: 20px; }
       header h1 { font-size: 28px; }
       header .logo { width: 120px; height: auto; padding: 10px 16px; }
+      .header-stats .wrap { justify-content: center; }
+      .sort-bar { flex-direction: column; align-items: flex-start !important; }
+      .pagination { flex-wrap: wrap; }
     }
 
     /* === Content === */
     main { max-width: var(--max); margin:auto; padding:24px 18px 60px; }
-    .card { background:#fff; border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.04); margin-bottom:20px; border: 1px solid rgba(0,0,0,0.03); }
+    .card { background:#fff; border-radius: var(--card-radius); padding:24px; box-shadow: var(--card-shadow); margin-bottom:20px; border: 1px solid rgba(0,0,0,0.04); transition: box-shadow var(--transition); }
     .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     
-    .pill { background:#fff1f2; color:var(--makro-red-dark); font-weight:700; font-size:13px; padding:6px 12px; border-radius:999px; letter-spacing: 0.5px; }
+    .pill { background: var(--makro-red-light); color:var(--makro-red-dark); font-weight:700; font-size:13px; padding:6px 14px; border-radius:999px; letter-spacing: 0.3px; display: inline-flex; align-items: center; gap: 6px; }
     .muted { opacity:.6; font-size: 14px; }
 
-    input, select { padding:12px 16px; border-radius:12px; border:1px solid #e5e7eb; font-size:15px; background:#fff; transition: border-color 0.2s; }
+    input, select { padding:12px 16px; border-radius:12px; border:1px solid #e5e7eb; font-size:15px; background:#fff; transition: all var(--transition); font-family: inherit; }
     input:focus, select:focus { outline: none; border-color: var(--makro-red); box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.1); }
     
-    .btn { border:0; border-radius:12px; padding:12px 20px; font-weight:600; cursor:pointer; font-size: 15px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn { border:0; border-radius:12px; padding:12px 20px; font-weight:600; cursor:pointer; font-size: 15px; transition: all var(--transition); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; text-decoration: none; }
     .btn.primary { background:var(--makro-red); color:#fff; box-shadow: 0 4px 12px rgba(237, 28, 36, 0.3); }
-    .btn.primary:hover { background:var(--makro-red-dark); transform: translateY(-1px); }
+    .btn.primary:hover { background:var(--makro-red-dark); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(237, 28, 36, 0.4); }
     .btn.ghost { background:#f3f4f6; color:#4b5563; }
     .btn.ghost:hover { background:#e5e7eb; color:#111; }
     .btn.outline { background:transparent; border: 1px solid #e5e7eb; color:#4b5563; }
-    .btn.outline:hover { border-color: var(--makro-red); color: var(--makro-red); background: #fff1f2; }
+    .btn.outline:hover { border-color: var(--makro-red); color: var(--makro-red); background: var(--makro-red-light); }
+    .btn.sm { padding: 8px 14px; font-size: 13px; border-radius: 8px; }
+    .btn.icon-btn { padding: 8px; width: 36px; height: 36px; border-radius: 10px; }
+    .btn.favorite-active { color: var(--makro-red); border-color: var(--makro-red); background: var(--makro-red-light); }
 
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-top:20px; }
+    /* === Tabs === */
+    .tabs { display: flex; gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 12px; margin-bottom: 16px; }
+    .tab { flex: 1; padding: 10px 16px; border: 0; background: transparent; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; color: #6b7280; transition: all var(--transition); font-family: inherit; text-align: center; }
+    .tab.active { background: #fff; color: var(--makro-red); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .tab:hover:not(.active) { color: #374151; }
+    .tab .tab-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; background: var(--makro-red-light); color: var(--makro-red); border-radius: 999px; font-size: 12px; font-weight: 700; margin-left: 6px; padding: 0 6px; }
+    .tab.active .tab-count { background: var(--makro-red); color: #fff; }
+
+    /* === Sort Bar === */
+    .sort-bar { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 4px; }
+    .sort-options { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .sort-btn { padding: 6px 12px; border: 1px solid #e5e7eb; background: #fff; border-radius: 8px; cursor: pointer; font-size: 13px; color: #6b7280; transition: all var(--transition); font-family: inherit; display: inline-flex; align-items: center; gap: 4px; }
+    .sort-btn:hover { border-color: #d1d5db; color: #374151; }
+    .sort-btn.active { border-color: var(--makro-red); color: var(--makro-red); background: var(--makro-red-light); font-weight: 600; }
+
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; margin-top:16px; }
     
-    /* === Job Card (Compact Version) === */
+    /* === Job Card === */
     .job { 
-      border:1px solid #f3f4f6; border-radius:16px; padding:20px; background:#fff; 
-      transition: all 0.2s ease; position: relative; display: flex; flex-direction: column;
+      border:1px solid #f3f4f6; border-radius: var(--card-radius); padding:20px; background:#fff; 
+      transition: all var(--transition); position: relative; display: flex; flex-direction: column;
+      animation: cardFadeIn 0.3s ease-out backwards;
     }
-    .job:hover { transform: translateY(-4px); border-color: #fecaca; box-shadow: 0 12px 24px rgba(237, 28, 36, 0.08); }
-    .job h3 { margin:12px 0 8px; font-size:18px; line-height:1.4; color: #111827; font-weight: 700; }
+    .job:hover { transform: translateY(-4px); border-color: #fecaca; box-shadow: 0 12px 28px rgba(237, 28, 36, 0.1); }
+    .job h3 { margin:12px 0 8px; font-size:17px; line-height:1.4; color: #111827; font-weight: 700; }
     
     .meta { font-size:14px; color: #6b7280; margin-bottom: 16px; flex: 1; }
     .meta div { margin:6px 0; display:flex; align-items:center; gap:8px; }
-    
-    /* Salary Style */
     .salary-text { color: #059669; font-weight: 600; }
 
     .status-badge { display:inline-flex; align-items: center; gap:4px; font-size:12px; padding:4px 10px; border-radius:6px; font-weight:600; letter-spacing: 0.3px; }
     .status-open { background:#ecfdf5; color:#059669; border: 1px solid #d1fae5; }
 
-    /* === Modal / Popup Styles === */
+    /* === Pagination === */
+    .pagination {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin-top: 24px; padding-top: 20px; border-top: 1px solid #f3f4f6;
+    }
+    .page-btn {
+      min-width: 40px; height: 40px; border: 1px solid #e5e7eb; background: #fff;
+      border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
+      color: #6b7280; transition: all var(--transition); font-family: inherit;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .page-btn:hover:not(:disabled):not(.active) { border-color: var(--makro-red); color: var(--makro-red); background: var(--makro-red-light); }
+    .page-btn.active { background: var(--makro-red); color: #fff; border-color: var(--makro-red); }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-btn.nav { padding: 0 14px; font-size: 13px; }
+    .page-info { font-size: 13px; color: #9ca3af; margin: 0 8px; }
+
+    /* === Modal / Popup === */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.5); z-index: 999;
       display: none; justify-content: center; align-items: center;
       padding: 20px; backdrop-filter: blur(4px);
     }
-    .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
+    .modal-overlay.active { display: flex; animation: fadeIn 0.25s ease-out; }
     
     .modal-content {
       background: #fff; width: 100%; max-width: 700px; max-height: 90vh;
       border-radius: 20px; overflow-y: auto; position: relative;
       display: flex; flex-direction: column;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.25);
     }
     .modal-header {
       padding: 24px; border-bottom: 1px solid #f3f4f6;
       position: sticky; top: 0; background: #fff; z-index: 10;
       display: flex; justify-content: space-between; align-items: start;
     }
-    .modal-body { padding: 24px; overflow-y: auto; font-size: 15px; line-height: 1.6; color: #374151; }
+    .modal-body { padding: 24px; overflow-y: auto; font-size: 15px; line-height: 1.7; color: #374151; }
     .modal-footer {
       padding: 20px 24px; border-top: 1px solid #f3f4f6;
-      background: #f9fafb; display: flex; gap: 12px; justify-content: flex-end;
+      background: #f9fafb; display: flex; gap: 12px; justify-content: space-between; align-items: center;
+      border-radius: 0 0 20px 20px;
     }
+    .modal-footer-left { display: flex; gap: 8px; }
+    .modal-footer-right { display: flex; gap: 12px; }
     
     .close-modal { 
-      background: transparent; border: 0; font-size: 24px; color: #9ca3af; cursor: pointer; padding: 0; line-height: 1;
+      background: #f3f4f6; border: 0; font-size: 20px; color: #9ca3af; cursor: pointer; padding: 0; line-height: 1;
+      width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
     }
-    .close-modal:hover { color: var(--makro-red); }
+    .close-modal:hover { color: var(--makro-red); background: var(--makro-red-light); }
 
-    .modal-section-title { font-weight: 700; color: #111827; font-size: 16px; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
+    .modal-section-title { font-weight: 700; color: #111827; font-size: 16px; margin: 24px 0 10px; display: flex; align-items: center; gap: 8px; }
     .modal-section-title:first-child { margin-top: 0; }
-    
     .modal-body ul { margin: 0; padding-left: 20px; }
-    .modal-body li { margin-bottom: 6px; }
+    .modal-body li { margin-bottom: 8px; }
 
-    iframe { width:100%; height:900px; border:0; border-radius:16px; background:#fff; margin-top:12px; border: 1px solid #e5e7eb; }
+    /* === Apply Form Modal (Full-screen overlay) === */
+    .apply-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6); z-index: 1000;
+      display: none; justify-content: center; align-items: center;
+      padding: 16px; backdrop-filter: blur(6px);
+    }
+    .apply-modal-overlay.active { display: flex; animation: fadeIn 0.25s ease-out; }
+    
+    .apply-modal-content {
+      background: #fff; width: 100%; max-width: 800px; height: 92vh;
+      border-radius: 20px; overflow: hidden; position: relative;
+      display: flex; flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    }
+    .apply-modal-header {
+      padding: 18px 24px; border-bottom: 1px solid #f3f4f6;
+      display: flex; justify-content: space-between; align-items: center;
+      background: #fff; flex-shrink: 0;
+    }
+    .apply-modal-header .position-info { flex: 1; }
+    .apply-modal-header .position-info h3 { margin: 0; font-size: 16px; color: #111827; }
+    .apply-modal-header .position-info .branch-info { font-size: 13px; color: #6b7280; margin-top: 2px; }
+    .apply-modal-body { flex: 1; overflow: hidden; position: relative; }
+    .apply-modal-body iframe { width: 100%; height: 100%; border: 0; }
+    .apply-modal-footer {
+      padding: 12px 24px; border-top: 1px solid #f3f4f6;
+      background: #f9fafb; display: flex; gap: 12px; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
+    }
+
+    /* === Toast === */
+    .toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .toast {
+      background: #1f2937; color: #fff; padding: 12px 24px; border-radius: 12px;
+      font-size: 14px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      animation: toastIn 0.3s ease-out; display: flex; align-items: center; gap: 8px;
+      white-space: nowrap;
+    }
+    .toast.leaving { animation: toastOut 0.3s ease-in forwards; }
+
+    /* === Back to Top === */
+    .back-to-top {
+      position: fixed; bottom: 24px; right: 24px; z-index: 100;
+      width: 48px; height: 48px; border-radius: 50%; border: 0;
+      background: var(--makro-red); color: #fff; font-size: 20px;
+      cursor: pointer; box-shadow: 0 4px 16px rgba(237, 28, 36, 0.3);
+      transition: all var(--transition); opacity: 0; pointer-events: none;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .back-to-top.visible { opacity: 1; pointer-events: auto; }
+    .back-to-top:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(237, 28, 36, 0.4); }
+
+    /* === Footer === */
+    footer {
+      background: #1f2937; color: #9ca3af; padding: 40px 18px 24px; font-size: 14px;
+    }
+    footer .wrap { max-width: var(--max); margin: auto; }
+    .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-bottom: 32px; }
+    .footer-section h4 { color: #fff; font-size: 16px; margin: 0 0 12px; font-weight: 700; }
+    .footer-section p, .footer-section a { color: #9ca3af; line-height: 1.8; }
+    .footer-section a { text-decoration: none; display: block; transition: color var(--transition); }
+    .footer-section a:hover { color: #fff; }
+    .footer-bottom { border-top: 1px solid #374151; padding-top: 20px; text-align: center; font-size: 13px; }
+
     .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--makro-red); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 30px auto; }
     
+    /* === Empty State === */
+    .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; }
+    .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state-title { font-size: 18px; font-weight: 700; color: #374151; margin-bottom: 8px; }
+    .empty-state-text { font-size: 14px; color: #9ca3af; max-width: 400px; margin: 0 auto; }
+
+    /* === Animations === */
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes cardFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(16px); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
   </style>
 </head>
 
 <body>
 <header>
-  <div class="wrap">
-    <div class="header-text">
-      <h1>ร่วมงานกับเรา</h1>
-      <p>ค้นหาตำแหน่งงานว่างและสมัครออนไลน์ได้ทันที</p>
+  <div class="header-inner">
+    <div class="wrap">
+      <div class="header-text">
+        <h1>ร่วมงานกับเรา</h1>
+        <p>ค้นหาตำแหน่งงานว่างและสมัครออนไลน์ได้ทันที</p>
+      </div>
+      <img id="companyLogo" src="" class="logo" alt="Makro Logo" referrerpolicy="no-referrer" onerror="this.style.display='none'">
     </div>
-    <img id="companyLogo" src="" class="logo" alt="Makro Logo" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+  </div>
+  <div class="header-stats">
+    <div class="wrap">
+      <div class="stat-item">
+        <span>📋</span>
+        <span>ตำแหน่งว่าง</span>
+        <span class="stat-number" id="statTotal">-</span>
+      </div>
+      <div class="stat-item">
+        <span>📍</span>
+        <span>จังหวัด</span>
+        <span class="stat-number" id="statProvinces">-</span>
+      </div>
+      <div class="stat-item">
+        <span>🏢</span>
+        <span>สาขา</span>
+        <span class="stat-number" id="statBranches">-</span>
+      </div>
+      <div class="stat-item">
+        <span>❤️</span>
+        <span>ที่บันทึกไว้</span>
+        <span class="stat-number" id="statSaved">0</span>
+      </div>
+    </div>
   </div>
 </header>
 
 <main>
+  <!-- Search & Filters -->
   <section class="card">
     <div class="row" style="justify-content:space-between">
       <div>
-        <span class="pill">ค้นหาตำแหน่งงาน</span>
-        <div class="muted" style="margin-top:4px;">เลือกสาขา หรือพิมพ์ชื่อตำแหน่งที่สนใจ</div>
+        <span class="pill">🔍 ค้นหาตำแหน่งงาน</span>
+        <div class="muted" style="margin-top:6px;">เลือกสาขา หรือพิมพ์ชื่อตำแหน่งที่สนใจ</div>
       </div>
-      <button class="btn primary" id="refreshBtn">
-        <span style="font-size:18px">↻</span> รีเฟรชตำแหน่งงาน
+      <button class="btn ghost" id="refreshBtn">
+        <span style="font-size:18px">↻</span> รีเฟรช
       </button>
     </div>
 
-    <div class="row" style="margin-top:20px">
-      <input id="q" placeholder="🔍 พิมพ์ชื่อตำแหน่งงาน, สาขา, จังหวัด ที่ต้องการสมัคร..." style="flex:1;min-width:240px">
+    <div class="row" style="margin-top:16px">
+      <input id="q" placeholder="พิมพ์ชื่อตำแหน่งงาน, สาขา, จังหวัด..." style="flex:1;min-width:240px">
       <select id="filterProvince" style="min-width:160px"><option value="">📍 ทุกจังหวัด</option></select>
       <select id="filterBranch" style="min-width:180px"><option value="">🏢 ทุกสาขา</option></select>
       <button class="btn ghost" id="clearBtn">ล้างตัวกรอง</button>
     </div>
   </section>
 
+  <!-- Tabs & Jobs -->
   <section class="card">
-    <div id="statusMsg" class="muted">กำลังเชื่อมต่อฐานข้อมูล...</div>
-    <div id="jobs" class="grid"></div>
-  </section>
+    <div class="tabs">
+      <button class="tab active" data-tab="all" id="tabAll">ตำแหน่งงานทั้งหมด <span class="tab-count" id="countAll">0</span></button>
+      <button class="tab" data-tab="saved" id="tabSaved">❤️ ที่บันทึกไว้ <span class="tab-count" id="countSaved">0</span></button>
+      <button class="tab" data-tab="recent" id="tabRecent">🕐 ดูล่าสุด <span class="tab-count" id="countRecent">0</span></button>
+    </div>
 
-  <!-- Hidden Apply Section -->
-  <section class="card" id="applySection" style="display:none;">
-    <span class="pill">ใบสมัครงาน</span>
-    <p class="muted" style="margin-top:8px">กรอกข้อมูลด้านล่างเพื่อสมัครในตำแหน่ง: <b id="applyPositionName" style="color:var(--makro-red)">...</b></p>
-    <div id="iframeContainer"></div>
+    <div class="sort-bar">
+      <div id="statusMsg" class="muted">กำลังเชื่อมต่อฐานข้อมูล...</div>
+      <div class="sort-options">
+        <span class="muted" style="font-size:13px">เรียงตาม:</span>
+        <button class="sort-btn active" data-sort="default">ค่าเริ่มต้น</button>
+        <button class="sort-btn" data-sort="position">ตำแหน่ง</button>
+        <button class="sort-btn" data-sort="branch">สาขา</button>
+        <button class="sort-btn" data-sort="salary">เงินเดือน</button>
+      </div>
+    </div>
+    <div id="jobs" class="grid"></div>
+    <div id="paginationContainer"></div>
   </section>
 </main>
 
-<!-- === MODAL POPUP === -->
+<!-- Job Detail Modal -->
 <div id="jobModal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
       <div style="flex:1; padding-right:16px;">
         <span class="status-badge status-open" style="margin-bottom:8px">● เปิดรับสมัคร</span>
-        <h2 id="modalTitle" style="margin:0; font-size:22px; line-height:1.3;">ชื่อตำแหน่ง</h2>
-        <div id="modalBranch" style="color:#6b7280; font-size:14px; margin-top:4px;">สาขา</div>
+        <h2 id="modalTitle" style="margin:8px 0 0; font-size:22px; line-height:1.3;">ชื่อตำแหน่ง</h2>
+        <div id="modalBranch" style="color:#6b7280; font-size:14px; margin-top:6px;">สาขา</div>
         <div id="modalSalary" style="color:#059669; font-weight:600; font-size:15px; margin-top:6px; display:none;"></div>
       </div>
-      <button class="close-modal" onclick="closeModal()">×</button>
+      <button class="close-modal" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-footer">
-      <button class="btn ghost" onclick="closeModal()">ปิดหน้าต่าง</button>
-      <button class="btn primary" id="modalApplyBtn">สมัครตำแหน่งนี้ 👉</button>
+      <div class="modal-footer-left">
+        <button class="btn outline sm" id="modalFavBtn" onclick="toggleFavoriteFromModal()">❤️ บันทึก</button>
+        <button class="btn outline sm" id="modalShareBtn" onclick="shareFromModal()">📤 แชร์</button>
+      </div>
+      <div class="modal-footer-right">
+        <button class="btn ghost" onclick="closeModal()">ปิดหน้าต่าง</button>
+        <button class="btn primary" id="modalApplyBtn">สมัครตำแหน่งนี้</button>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- Apply Form Modal (Popup) -->
+<div id="applyModal" class="apply-modal-overlay">
+  <div class="apply-modal-content">
+    <div class="apply-modal-header">
+      <div class="position-info">
+        <h3>📝 ใบสมัครงาน</h3>
+        <div class="branch-info" id="applyModalPosition">...</div>
+      </div>
+      <button class="close-modal" onclick="closeApplyModal()">✕</button>
+    </div>
+    <div class="apply-modal-body" id="applyModalBody">
+    </div>
+    <div class="apply-modal-footer">
+      <span class="muted" style="font-size:13px">กรอกข้อมูลให้ครบถ้วนแล้วกดส่งในแบบฟอร์ม</span>
+      <div style="display:flex; gap:8px;">
+        <a id="applyFormNewTab" href="#" target="_blank" class="btn outline sm">เปิดในแท็บใหม่</a>
+        <button class="btn ghost sm" onclick="closeApplyModal()">ปิด</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Back to Top -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Footer -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-section">
+        <h4>เกี่ยวกับ Makro</h4>
+        <p>แม็คโคร ศูนย์จำหน่ายสินค้าอุปโภคบริโภค ในราคาส่ง เพื่อผู้ประกอบการ ร้านค้า โรงแรม ร้านอาหาร และสถาบันต่างๆ</p>
+      </div>
+      <div class="footer-section">
+        <h4>ข้อมูลเพิ่มเติม</h4>
+        <a href="https://www.makro.co.th" target="_blank" rel="noopener">เว็บไซต์ Makro</a>
+        <a href="https://www.makro.co.th/th/about" target="_blank" rel="noopener">เกี่ยวกับเรา</a>
+      </div>
+      <div class="footer-section">
+        <h4>การสมัครงาน</h4>
+        <p>สมัครงานออนไลน์ผ่านหน้าเว็บไซต์นี้ โดยเลือกตำแหน่งที่สนใจ แล้วกรอกใบสมัครงานได้ทันที</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 Makro - ระบบรับสมัครงานออนไลน์
+    </div>
+  </div>
+</footer>
 
 <script>
 /* ================= CONFIG ================= */
@@ -187,13 +426,24 @@ const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
 
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
 
-// Microsoft Form Links
 const FORM_BASE_URL = "https://forms.office.com/r/wabJfczd4Z"; 
 const FORM_ORDER_PICKER_URL = "https://forms.office.com/r/zdLQKYiYPz";
 
-/* ================= LOGIC ================= */
+const JOBS_PER_PAGE = 20;
+
+/* ================= STATE ================= */
 
 let allJobs = [];
+let currentTab = "all";
+let currentSort = "default";
+let currentPage = 1;
+let favorites = JSON.parse(localStorage.getItem("makro_favorites") || "[]");
+let recentlyViewed = JSON.parse(localStorage.getItem("makro_recent") || "[]");
+let currentModalJobId = null;
+let lastFilteredJobs = [];
+
+/* ================= DOM ELEMENTS ================= */
+
 const elQ = document.getElementById("q");
 const elFilterProvince = document.getElementById("filterProvince");
 const elFilterBranch = document.getElementById("filterBranch");
@@ -201,9 +451,7 @@ const elClearBtn = document.getElementById("clearBtn");
 const elStatus = document.getElementById("statusMsg");
 const elJobs = document.getElementById("jobs");
 const elRefreshBtn = document.getElementById("refreshBtn");
-const elApplySection = document.getElementById("applySection");
-const elApplyPositionName = document.getElementById("applyPositionName");
-const elIframeContainer = document.getElementById("iframeContainer");
+const elPagination = document.getElementById("paginationContainer");
 
 const modalOverlay = document.getElementById("jobModal");
 const modalTitle = document.getElementById("modalTitle");
@@ -212,37 +460,82 @@ const modalSalary = document.getElementById("modalSalary");
 const modalBody = document.getElementById("modalBody");
 const modalApplyBtn = document.getElementById("modalApplyBtn");
 
+const applyModalOverlay = document.getElementById("applyModal");
+
+const backToTopBtn = document.getElementById("backToTop");
+
+/* ================= INIT ================= */
+
 window.onload = init;
 
 async function init() {
   if (COMPANY_LOGO_URL) document.getElementById("companyLogo").src = COMPANY_LOGO_URL;
   await loadData();
   
-  elQ.addEventListener("input", renderJobs);
+  elQ.addEventListener("input", () => { currentPage = 1; renderJobs(); });
   
-  // เชื่อม Dropdown จังหวัด -> สาขา
   elFilterProvince.addEventListener("change", () => {
+    currentPage = 1;
     updateBranchDropdown(); 
     renderJobs();           
   });
   
-  elFilterBranch.addEventListener("change", renderJobs);
+  elFilterBranch.addEventListener("change", () => { currentPage = 1; renderJobs(); });
   
   elClearBtn.addEventListener("click", () => {
     elQ.value = ""; 
     elFilterProvince.value = ""; 
-    updateBranchDropdown(); // Reset สาขาเป็นทั้งหมด
+    updateBranchDropdown();
     elFilterBranch.value = ""; 
+    currentPage = 1;
     renderJobs();
   });
   
   elRefreshBtn.addEventListener("click", loadData);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
+  applyModalOverlay.addEventListener("click", (e) => { if (e.target === applyModalOverlay) closeApplyModal(); });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (applyModalOverlay.classList.contains("active")) closeApplyModal();
+      else closeModal();
+    }
+  });
+
+  // Tabs
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      currentTab = tab.dataset.tab;
+      currentPage = 1;
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      renderJobs();
+    });
+  });
+
+  // Sort buttons
+  document.querySelectorAll(".sort-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentSort = btn.dataset.sort;
+      currentPage = 1;
+      document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderJobs();
+    });
+  });
+
+  // Back to top
+  window.addEventListener("scroll", () => {
+    backToTopBtn.classList.toggle("visible", window.scrollY > 400);
+  });
 }
+
+/* ================= DATA LOADING ================= */
 
 async function loadData() {
   elStatus.innerHTML = '<div class="loader"></div>';
   elJobs.innerHTML = "";
+  elPagination.innerHTML = "";
   try {
     const response = await fetch(GOOGLE_SHEET_CSV_URL);
     if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
@@ -253,7 +546,7 @@ async function loadData() {
     allJobs = data.map((row, index) => {
       const rawBranch = row[1] || "";
       const province = row[5] ? row[5].trim() : "";
-      const fullBranch = province ? `${rawBranch} (จ.${province})` : rawBranch;
+      const fullBranch = province ? rawBranch + " (จ." + province + ")" : rawBranch;
       
       return {
         id: index,
@@ -268,24 +561,36 @@ async function loadData() {
       };
     }).filter(job => job.position && job.branch);
 
+    currentPage = 1;
     updateProvinceDropdown();
     updateBranchDropdown();
+    updateHeaderStats();
     renderJobs();
     
-    // อัปเดตข้อความเริ่มต้น (ยังไม่มีการกรอง)
-    elStatus.textContent = `พบตำแหน่งงานว่าง ${allJobs.length} อัตรา (อัปเดต: ${new Date().toLocaleTimeString('th-TH')})`;
   } catch (error) {
     console.error(error);
-    elStatus.innerHTML = `<span style="color:red">เกิดข้อผิดพลาด: ${error.message}</span>`;
+    elStatus.innerHTML = '<span style="color:red">เกิดข้อผิดพลาด: ' + error.message + '</span>';
   }
 }
+
+/* ================= HEADER STATS ================= */
+
+function updateHeaderStats() {
+  const openJobs = allJobs.filter(j => j.status.toLowerCase().trim() === "open");
+  document.getElementById("statTotal").textContent = openJobs.length;
+  document.getElementById("statProvinces").textContent = new Set(openJobs.map(j => j.province).filter(Boolean)).size;
+  document.getElementById("statBranches").textContent = new Set(openJobs.map(j => j.branch)).size;
+  document.getElementById("statSaved").textContent = favorites.length;
+}
+
+/* ================= RENDER JOBS ================= */
 
 function renderJobs() {
   const searchText = elQ.value.toLowerCase();
   const provinceFilter = elFilterProvince.value;
   const branchFilter = elFilterBranch.value;
 
-  const filtered = allJobs.filter(job => {
+  let filtered = allJobs.filter(job => {
     const matchSearch = job.position.toLowerCase().includes(searchText) || 
                         job.branch.toLowerCase().includes(searchText) ||
                         job.desc.toLowerCase().includes(searchText) ||
@@ -296,84 +601,261 @@ function renderJobs() {
     return matchSearch && matchProvince && matchBranch && matchStatus;
   });
 
+  // Update tab counts
+  const savedCount = filtered.filter(j => favorites.includes(j.id)).length;
+  const recentCount = filtered.filter(j => recentlyViewed.includes(j.id)).length;
+  document.getElementById("countAll").textContent = filtered.length;
+  document.getElementById("countSaved").textContent = savedCount;
+  document.getElementById("countRecent").textContent = recentCount;
+
+  // Apply tab filter
+  if (currentTab === "saved") {
+    filtered = filtered.filter(j => favorites.includes(j.id));
+  } else if (currentTab === "recent") {
+    filtered = filtered.filter(j => recentlyViewed.includes(j.id));
+  }
+
+  // Apply sort
+  if (currentSort === "position") {
+    filtered.sort((a, b) => a.position.localeCompare(b.position, 'th'));
+  } else if (currentSort === "branch") {
+    filtered.sort((a, b) => a.branch.localeCompare(b.branch, 'th'));
+  } else if (currentSort === "salary") {
+    filtered.sort((a, b) => parseSalaryForSort(b.salary) - parseSalaryForSort(a.salary));
+  }
+
+  lastFilteredJobs = filtered;
   elJobs.innerHTML = "";
-  
-  // === ปรับปรุง Wording สถานะแบบ Dynamic ===
-  if (filtered.length > 0) {
-    let statusText = "พบตำแหน่งงานว่าง";
-    
-    // ถ้ามีการเลือกจังหวัด
-    if (provinceFilter) {
-      statusText += ` จังหวัด${provinceFilter}`;
-    }
-    
-    // ถ้ามีการเลือกสาขา
-    if (branchFilter) {
-      // ตัดคำว่า (จ.จังหวัด) ออกจากชื่อสาขาเพื่อความสวยงามในประโยค (ถ้ามี)
-      let displayBranch = branchFilter.split(' (จ.')[0]; 
-      statusText += ` ที่${displayBranch}`;
-    }
-    
-    // ถ้ามีการพิมพ์ค้นหา
-    if (searchText) {
-      statusText += ` (คำค้น: "${elQ.value}")`;
+  elPagination.innerHTML = "";
+
+  // Empty state
+  if (filtered.length === 0) {
+    elStatus.textContent = "";
+    let emptyMsg = "ไม่พบตำแหน่งงานที่ค้นหา";
+    let emptyIcon = "🔍";
+    let emptyHint = "ลองค้นหาด้วยคำอื่น หรือล้างตัวกรอง";
+
+    if (currentTab === "saved") {
+      emptyMsg = "ยังไม่มีตำแหน่งงานที่บันทึกไว้";
+      emptyIcon = "❤️";
+      emptyHint = "กดปุ่ม ❤️ บนตำแหน่งงานที่สนใจเพื่อบันทึกไว้";
+    } else if (currentTab === "recent") {
+      emptyMsg = "ยังไม่มีประวัติการดูงาน";
+      emptyIcon = "🕐";
+      emptyHint = "ตำแหน่งงานที่คุณเปิดดูรายละเอียดจะแสดงที่นี่";
     }
 
-    // ถ้าไม่มีการกรองเลย (เลือกทั้งหมด)
-    if (!provinceFilter && !branchFilter && !searchText) {
-      statusText += "ทั้งหมด";
-    }
-    
-    statusText += ` จำนวน <span style="color:#ED1C24; font-weight:bold; font-size:1.1em;">${filtered.length}</span> อัตรา`;
-    
-    // เพิ่มเวลาอัปเดตท้ายประโยค (ถ้าต้องการ)
-    statusText += ` <span class="muted" style="font-size:0.9em; font-weight:normal;">(ข้อมูลล่าสุด: ${new Date().toLocaleTimeString('th-TH')})</span>`;
-
-    elStatus.innerHTML = statusText;
-  } else {
-    elStatus.textContent = `ไม่พบตำแหน่งงานที่ค้นหา`;
-    elJobs.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;opacity:0.6">ไม่พบตำแหน่งงานที่ค้นหา</div>`;
+    elJobs.innerHTML = '<div class="empty-state">' +
+      '<div class="empty-state-icon">' + emptyIcon + '</div>' +
+      '<div class="empty-state-title">' + emptyMsg + '</div>' +
+      '<div class="empty-state-text">' + emptyHint + '</div></div>';
     return;
   }
 
-  filtered.forEach(job => {
+  // Pagination calc
+  const totalPages = Math.ceil(filtered.length / JOBS_PER_PAGE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const startIdx = (currentPage - 1) * JOBS_PER_PAGE;
+  const endIdx = Math.min(startIdx + JOBS_PER_PAGE, filtered.length);
+  const pageJobs = filtered.slice(startIdx, endIdx);
+
+  // Status text
+  let statusText = "พบตำแหน่งงานว่าง";
+  if (provinceFilter) statusText += " จังหวัด" + provinceFilter;
+  if (branchFilter) {
+    statusText += " ที่" + branchFilter.split(' (จ.')[0];
+  }
+  if (searchText) statusText += ' (คำค้น: "' + elQ.value + '")';
+  if (!provinceFilter && !branchFilter && !searchText) statusText += "ทั้งหมด";
+  statusText += ' จำนวน <span style="color:#ED1C24; font-weight:bold; font-size:1.1em;">' + filtered.length + '</span> อัตรา';
+  if (totalPages > 1) {
+    statusText += ' <span class="muted" style="font-size:0.9em;">(หน้า ' + currentPage + '/' + totalPages + ' แสดง ' + (startIdx+1) + '-' + endIdx + ')</span>';
+  }
+  elStatus.innerHTML = statusText;
+
+  // Render page jobs
+  pageJobs.forEach((job, i) => {
     const card = document.createElement("div");
     card.className = "job";
+    card.style.animationDelay = Math.min(i * 0.04, 0.4) + "s";
     
-    const salaryHtml = job.salary ? `<div class="salary-text">💰 ${job.salary}</div>` : '';
+    const isFav = favorites.includes(job.id);
+    const salaryHtml = job.salary ? '<div class="salary-text">💰 ' + job.salary + '</div>' : '';
+    const favClass = isFav ? ' favorite-active' : '';
 
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:start;">
-        <span class="status-badge status-open">● เปิดรับสมัคร</span>
-      </div>
-      <h3>${job.position}</h3>
-      <div class="meta">
-        <div>🏢 <strong>${job.branch}</strong></div>
-        ${salaryHtml}
-      </div>
-      
-      <div style="display:flex; gap:8px; margin-top:auto;">
-        <button class="btn outline" style="flex:1;" onclick="openJobModal(${job.id})">
-          📖 ดูรายละเอียด
-        </button>
-        <button class="btn primary" style="flex:1;" onclick="openApplyForm('${job.position}', '${job.branch}')">
-          สมัครเลย
-        </button>
-      </div>
-    `;
+    card.innerHTML = 
+      '<div style="display:flex;justify-content:space-between;align-items:start;">' +
+        '<span class="status-badge status-open">● เปิดรับสมัคร</span>' +
+        '<div style="display:flex;gap:4px;">' +
+          '<button class="btn icon-btn outline' + favClass + '" onclick="event.stopPropagation();toggleFavorite(' + job.id + ',this)" title="บันทึก">' +
+            (isFav ? '❤️' : '🤍') +
+          '</button>' +
+          '<button class="btn icon-btn outline" onclick="event.stopPropagation();shareJob(' + job.id + ')" title="แชร์">📤</button>' +
+        '</div>' +
+      '</div>' +
+      '<h3>' + job.position + '</h3>' +
+      '<div class="meta">' +
+        '<div>🏢 <strong>' + job.branch + '</strong></div>' +
+        salaryHtml +
+      '</div>' +
+      '<div style="display:flex; gap:8px; margin-top:auto;">' +
+        '<button class="btn outline" style="flex:1;" onclick="openJobModal(' + job.id + ')">📖 ดูรายละเอียด</button>' +
+        '<button class="btn primary" style="flex:1;" onclick="openApplyForm(\'' + escapeQuotes(job.position) + '\', \'' + escapeQuotes(job.branch) + '\')">สมัครเลย</button>' +
+      '</div>';
     elJobs.appendChild(card);
   });
+
+  // Render pagination
+  if (totalPages > 1) {
+    renderPagination(totalPages);
+  }
 }
+
+/* ================= PAGINATION ================= */
+
+function renderPagination(totalPages) {
+  let html = '<div class="pagination">';
+  
+  // Prev button
+  html += '<button class="page-btn nav" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>← ก่อนหน้า</button>';
+  
+  // Page numbers with smart truncation
+  const pages = getPageNumbers(currentPage, totalPages);
+  pages.forEach(p => {
+    if (p === '...') {
+      html += '<span class="page-info">...</span>';
+    } else {
+      html += '<button class="page-btn' + (p === currentPage ? ' active' : '') + '" onclick="goToPage(' + p + ')">' + p + '</button>';
+    }
+  });
+  
+  // Next button
+  html += '<button class="page-btn nav" onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>ถัดไป →</button>';
+  
+  html += '</div>';
+  elPagination.innerHTML = html;
+}
+
+function getPageNumbers(current, total) {
+  if (total <= 7) {
+    return Array.from({length: total}, (_, i) => i + 1);
+  }
+  const pages = [];
+  pages.push(1);
+  if (current > 3) pages.push('...');
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+    pages.push(i);
+  }
+  if (current < total - 2) pages.push('...');
+  pages.push(total);
+  return pages;
+}
+
+function goToPage(page) {
+  const totalPages = Math.ceil(lastFilteredJobs.length / JOBS_PER_PAGE);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderJobs();
+  // Scroll to top of jobs section
+  document.querySelector('.tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ================= HELPERS ================= */
+
+function escapeQuotes(str) {
+  return str.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+
+function parseSalaryForSort(salary) {
+  if (!salary) return 0;
+  const nums = salary.replace(/,/g, '').match(/\d+/g);
+  if (!nums) return 0;
+  return parseInt(nums[0]) || 0;
+}
+
+/* ================= FAVORITES ================= */
+
+function toggleFavorite(id, btnEl) {
+  const idx = favorites.indexOf(id);
+  if (idx === -1) {
+    favorites.push(id);
+    if (btnEl) { btnEl.innerHTML = "❤️"; btnEl.classList.add("favorite-active"); btnEl.style.animation = "pulse 0.3s"; setTimeout(() => btnEl.style.animation = "", 300); }
+    showToast("❤️ บันทึกตำแหน่งงานแล้ว");
+  } else {
+    favorites.splice(idx, 1);
+    if (btnEl) { btnEl.innerHTML = "🤍"; btnEl.classList.remove("favorite-active"); }
+    showToast("💔 ลบออกจากรายการบันทึกแล้ว");
+  }
+  localStorage.setItem("makro_favorites", JSON.stringify(favorites));
+  updateHeaderStats();
+  document.getElementById("countSaved").textContent = allJobs.filter(j => j.status.toLowerCase().trim() === "open" && favorites.includes(j.id)).length;
+  if (currentTab === "saved") renderJobs();
+}
+
+function toggleFavoriteFromModal() {
+  if (currentModalJobId === null) return;
+  toggleFavorite(currentModalJobId, null);
+  updateModalFavButton();
+}
+
+function updateModalFavButton() {
+  const btn = document.getElementById("modalFavBtn");
+  if (currentModalJobId !== null && favorites.includes(currentModalJobId)) {
+    btn.innerHTML = "❤️ บันทึกแล้ว";
+    btn.classList.add("favorite-active");
+  } else {
+    btn.innerHTML = "🤍 บันทึก";
+    btn.classList.remove("favorite-active");
+  }
+}
+
+/* ================= RECENTLY VIEWED ================= */
+
+function addToRecent(id) {
+  recentlyViewed = recentlyViewed.filter(x => x !== id);
+  recentlyViewed.unshift(id);
+  if (recentlyViewed.length > 20) recentlyViewed = recentlyViewed.slice(0, 20);
+  localStorage.setItem("makro_recent", JSON.stringify(recentlyViewed));
+  document.getElementById("countRecent").textContent = allJobs.filter(j => j.status.toLowerCase().trim() === "open" && recentlyViewed.includes(j.id)).length;
+}
+
+/* ================= SHARE ================= */
+
+function shareJob(id) {
+  const job = allJobs.find(j => j.id === id);
+  if (!job) return;
+  const text = "ตำแหน่ง: " + job.position + "\nสาขา: " + job.branch + (job.salary ? "\nเงินเดือน: " + job.salary : "") + "\nสมัครงานได้ที่: " + window.location.href;
+  
+  if (navigator.share) {
+    navigator.share({ title: job.position + " - Makro", text: text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("📋 คัดลอกข้อมูลตำแหน่งงานแล้ว");
+    }).catch(() => {
+      showToast("ไม่สามารถคัดลอกได้");
+    });
+  }
+}
+
+function shareFromModal() {
+  if (currentModalJobId !== null) shareJob(currentModalJobId);
+}
+
+/* ================= JOB DETAIL MODAL ================= */
 
 function openJobModal(id) {
   const job = allJobs.find(j => j.id === id);
   if (!job) return;
 
+  currentModalJobId = id;
+  addToRecent(id);
+
   modalTitle.textContent = job.position;
-  modalBranch.textContent = `🏢 ${job.branch}`;
+  modalBranch.textContent = "🏢 " + job.branch;
   
   if (job.salary) {
-    modalSalary.textContent = `💰 ${job.salary}`;
+    modalSalary.textContent = "💰 " + job.salary;
     modalSalary.style.display = 'block';
   } else {
     modalSalary.style.display = 'none';
@@ -381,15 +863,16 @@ function openJobModal(id) {
   
   let content = '';
   if (job.desc) {
-    content += `<div class="modal-section-title">📋 ลักษณะงาน</div>${formatTextToFullList(job.desc)}`;
+    content += '<div class="modal-section-title">📋 ลักษณะงาน</div>' + formatTextToFullList(job.desc);
   }
   if (job.qual) {
-    content += `<div class="modal-section-title">🎓 คุณสมบัติผู้สมัคร</div>${formatTextToFullList(job.qual)}`;
+    content += '<div class="modal-section-title">🎓 คุณสมบัติผู้สมัคร</div>' + formatTextToFullList(job.qual);
   }
   if (!content) content = '<div class="muted" style="text-align:center; padding:20px;">- ไม่มีรายละเอียดเพิ่มเติม -</div>';
   
   modalBody.innerHTML = content;
   modalApplyBtn.onclick = function() { closeModal(); openApplyForm(job.position, job.branch); };
+  updateModalFavButton();
   modalOverlay.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -397,74 +880,95 @@ function openJobModal(id) {
 function closeModal() {
   modalOverlay.classList.remove('active');
   document.body.style.overflow = '';
+  currentModalJobId = null;
 }
 
-function formatTextToFullList(text) {
-  if (!text) return "";
-  const items = text.split(/\r?\n|•|- /).map(s => s.trim()).filter(s => s);
-  if (items.length === 0) return `<p>${text}</p>`;
-  let html = "<ul>";
-  items.forEach(item => html += `<li>${item}</li>`);
-  html += "</ul>";
-  return html;
-}
+/* ================= APPLY FORM MODAL ================= */
 
 window.openApplyForm = function(position, branch) {
-  elApplySection.style.display = "block";
-  elApplyPositionName.textContent = `${position} (${branch})`;
-  elApplySection.scrollIntoView({ behavior: "smooth" });
-  
   let targetFormUrl = FORM_BASE_URL;
   if (position.trim() === "พนักงานจัดออเดอร์สินค้า (Picker)") {
     targetFormUrl = FORM_ORDER_PICKER_URL;
   }
 
-  elIframeContainer.innerHTML = `
-    <div style="text-align:center; margin-bottom:12px;">
-       <a href="${targetFormUrl}" target="_blank" class="btn ghost" style="display:inline-flex; align-items:center; gap:6px; font-size:14px; color:#4b5563; background:#f3f4f6; border:1px solid #e5e7eb;">
-         <span>⚠️ หากแบบฟอร์มไม่แสดง</span> <span style="text-decoration:underline; font-weight:bold;">คลิกที่นี่เพื่อเปิดฟอร์มในหน้าต่างใหม่</span>
-       </a>
-    </div>
-    <iframe src="${targetFormUrl}" allowfullscreen></iframe>
-  `;
+  document.getElementById("applyModalPosition").textContent = "ตำแหน่ง: " + position + " (" + branch + ")";
+  document.getElementById("applyFormNewTab").href = targetFormUrl;
+  document.getElementById("applyModalBody").innerHTML = '<iframe src="' + targetFormUrl + '" allowfullscreen></iframe>';
+
+  applyModalOverlay.classList.add("active");
+  document.body.style.overflow = 'hidden';
 }
 
+function closeApplyModal() {
+  applyModalOverlay.classList.remove("active");
+  document.body.style.overflow = '';
+  document.getElementById("applyModalBody").innerHTML = '';
+}
+
+/* ================= TOAST ================= */
+
+function showToast(message) {
+  const container = document.getElementById("toastContainer");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add("leaving");
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+/* ================= DROPDOWNS ================= */
+
 function updateProvinceDropdown() {
-  const provinces = [...new Set(allJobs.map(j => j.province).filter(p => p))].sort();
+  const openJobs = allJobs.filter(j => j.status.toLowerCase().trim() === "open");
+  const provinceCounts = {};
+  openJobs.forEach(j => { if (j.province) provinceCounts[j.province] = (provinceCounts[j.province] || 0) + 1; });
+  const provinces = Object.keys(provinceCounts).sort();
   const currentVal = elFilterProvince.value;
-  elFilterProvince.innerHTML = '<option value="">📍 ทุกจังหวัด</option>';
+  elFilterProvince.innerHTML = '<option value="">📍 ทุกจังหวัด (' + openJobs.length + ')</option>';
   provinces.forEach(p => {
     const opt = document.createElement("option");
-    opt.value = p; opt.textContent = p; elFilterProvince.appendChild(opt);
+    opt.value = p; opt.textContent = p + " (" + provinceCounts[p] + ")"; elFilterProvince.appendChild(opt);
   });
   if (provinces.includes(currentVal)) elFilterProvince.value = currentVal;
 }
 
-// อัปเดตฟังก์ชันนี้: กรองสาขาตามจังหวัดที่เลือก
 function updateBranchDropdown() {
   const selectedProvince = elFilterProvince.value;
   const currentBranchVal = elFilterBranch.value;
-
-  // กรอง: ถ้าเลือกจังหวัด ให้เอาเฉพาะสาขาในจังหวัดนั้น
-  let filteredJobs = allJobs;
+  let filteredJobs = allJobs.filter(j => j.status.toLowerCase().trim() === "open");
   if (selectedProvince) {
-    filteredJobs = allJobs.filter(job => job.province === selectedProvince);
+    filteredJobs = filteredJobs.filter(job => job.province === selectedProvince);
   }
-
-  const branches = [...new Set(filteredJobs.map(j => j.branch))].sort();
+  const branchCounts = {};
+  filteredJobs.forEach(j => { branchCounts[j.branch] = (branchCounts[j.branch] || 0) + 1; });
+  const branches = Object.keys(branchCounts).sort();
   
-  elFilterBranch.innerHTML = '<option value="">🏢 ทุกสาขา</option>';
+  elFilterBranch.innerHTML = '<option value="">🏢 ทุกสาขา (' + filteredJobs.length + ')</option>';
   branches.forEach(b => {
     const opt = document.createElement("option");
-    opt.value = b; opt.textContent = b; elFilterBranch.appendChild(opt);
+    opt.value = b; opt.textContent = b + " (" + branchCounts[b] + ")"; elFilterBranch.appendChild(opt);
   });
   
-  // เช็คว่าค่าเดิมยังอยู่ไหม
   if (branches.includes(currentBranchVal)) {
     elFilterBranch.value = currentBranchVal;
   } else {
     elFilterBranch.value = "";
   }
+}
+
+/* ================= TEXT HELPERS ================= */
+
+function formatTextToFullList(text) {
+  if (!text) return "";
+  const items = text.split(/\r?\n|•|- /).map(s => s.trim()).filter(s => s);
+  if (items.length === 0) return "<p>" + text + "</p>";
+  let html = "<ul>";
+  items.forEach(item => html += "<li>" + item + "</li>");
+  html += "</ul>";
+  return html;
 }
 
 function parseCSV(text) {
