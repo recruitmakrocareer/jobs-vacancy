@@ -257,6 +257,25 @@
     @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(16px); } }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+    /* === Announcement Bar === */
+    .announcement-bar { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); color: #fff; overflow: hidden; }
+    .announcement-bar.hidden { display: none; }
+    .ann-bar-inner { display: flex; align-items: stretch; max-width: var(--max); margin: 0 auto; }
+    .ann-bar-label { background: rgba(0,0,0,0.2); padding: 10px 18px; font-weight: 700; font-size: 13px; white-space: nowrap; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .ann-bar-scroll { flex: 1; overflow: hidden; position: relative; display: flex; align-items: center; }
+    .ann-ticker { display: flex; animation: tickerScroll 30s linear infinite; white-space: nowrap; padding: 10px 0; }
+    .ann-ticker:hover { animation-play-state: paused; }
+    @keyframes tickerScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ann-item { display: inline-flex; align-items: center; gap: 10px; margin-right: 60px; font-size: 14px; }
+    .ann-item-branch { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 2px 12px; font-weight: 700; font-size: 12px; }
+    .ann-item-pos { font-weight: 600; }
+    .ann-item-count { background: #fbbf24; color: #92400e; border-radius: 20px; padding: 1px 10px; font-size: 11px; font-weight: 700; }
+    .ann-item-sep { color: rgba(255,255,255,0.4); font-size: 18px; }
+    .ann-bar-close { background: rgba(0,0,0,0.2); border: none; color: rgba(255,255,255,0.7); padding: 10px 14px; cursor: pointer; flex-shrink: 0; font-size: 16px; transition: background 0.2s; }
+    .ann-bar-close:hover { background: rgba(0,0,0,0.35); color: #fff; }
+    .ann-bar-loading { padding: 10px 18px; font-size: 13px; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 8px; }
   </style>
 </head>
 
@@ -296,6 +315,24 @@
     </div>
   </div>
 </header>
+
+<!-- Announcement Bar: ประกาศตำแหน่งงานว่างสาขา -->
+<div class="announcement-bar hidden" id="announcementBar">
+  <div class="ann-bar-inner">
+    <div class="ann-bar-label">
+      <span>📢</span>
+      <span>ประกาศตำแหน่งงานว่างสาขา</span>
+    </div>
+    <div class="ann-bar-scroll">
+      <div class="ann-bar-loading" id="annBarLoading">
+        <span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite"></span>
+        กำลังโหลดประกาศ...
+      </div>
+      <div class="ann-ticker" id="annTicker" style="display:none"></div>
+    </div>
+    <button class="ann-bar-close" onclick="closeAnnouncementBar()" title="ปิด">✕</button>
+  </div>
+</div>
 
 <main>
   <!-- Search & Filters -->
@@ -422,7 +459,10 @@
 <script>
 /* ================= CONFIG ================= */
 
-const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=2065374453&single=true&output=csv"; 
+const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=2065374453&single=true&output=csv";
+
+/* URL สำหรับดึงข้อมูลประกาศตำแหน่งงานว่างสาขา (Google Sheets tab แยก ตั้งค่าโดย Admin) */
+const ANNOUNCEMENT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=0&single=true&output=csv";
 
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
 
@@ -471,7 +511,8 @@ window.onload = init;
 async function init() {
   if (COMPANY_LOGO_URL) document.getElementById("companyLogo").src = COMPANY_LOGO_URL;
   await loadData();
-  
+  loadAnnouncementBar();
+
   elQ.addEventListener("input", () => { currentPage = 1; renderJobs(); });
   
   elFilterProvince.addEventListener("change", () => {
@@ -989,6 +1030,71 @@ function parseCSV(text) {
     row.push(field.trim());
     return row;
   }).filter(row => row !== null);
+}
+
+/* ====================================================
+   ANNOUNCEMENT BAR - ประกาศตำแหน่งงานว่างสาขา
+   ==================================================== */
+
+async function loadAnnouncementBar() {
+  const bar = document.getElementById('announcementBar');
+  const ticker = document.getElementById('annTicker');
+  const loading = document.getElementById('annBarLoading');
+
+  if (sessionStorage.getItem('ann_bar_closed') === '1') return;
+  if (!ANNOUNCEMENT_CSV_URL) return;
+
+  bar.classList.remove('hidden');
+
+  try {
+    const res = await fetch(ANNOUNCEMENT_CSV_URL + '&t=' + Date.now());
+    if (!res.ok) throw new Error('Network error');
+    const text = await res.text();
+    const rows = parseCSV(text);
+
+    // Expected columns: id, branch, position, count, expiry, status, detail, createdDate
+    const active = rows.slice(1).filter(r => {
+      const status = (r[5] || '').trim().toLowerCase();
+      return status === 'active' || status === 'เผยแพร่';
+    });
+
+    loading.style.display = 'none';
+
+    if (active.length === 0) {
+      bar.classList.add('hidden');
+      return;
+    }
+
+    ticker.innerHTML = active.map(r => {
+      const branch = r[1] || '';
+      const position = r[2] || '';
+      const count = r[3] || '';
+      return `
+        <span class="ann-item">
+          <span class="ann-item-branch">🏢 ${escAnn(branch)}</span>
+          <span class="ann-item-pos">${escAnn(position)}</span>
+          ${count ? `<span class="ann-item-count">${escAnn(count)} อัตรา</span>` : ''}
+        </span>
+        <span class="ann-item-sep">•</span>
+      `;
+    }).join('');
+
+    ticker.style.display = 'flex';
+    ticker.style.animationDuration = Math.max(15, active.length * 8) + 's';
+
+  } catch (err) {
+    bar.classList.add('hidden');
+  }
+}
+
+function closeAnnouncementBar() {
+  document.getElementById('announcementBar').classList.add('hidden');
+  sessionStorage.setItem('ann_bar_closed', '1');
+}
+
+function escAnn(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 
