@@ -355,14 +355,6 @@
     </div>
   </section>
 
-  <!-- Announcement Cards -->
-  <section class="card" id="annCardsSection" style="display:none; border-left:4px solid #f59e0b;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <span class="pill" style="background:#fef3c7; color:#92400e;">📢 ประกาศด่วนจากสาขา</span>
-    </div>
-    <div id="annCards" class="grid"></div>
-  </section>
-
   <!-- Tabs & Jobs -->
   <section class="card">
     <div class="tabs">
@@ -471,6 +463,7 @@ const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
 
 /* URL สำหรับดึงข้อมูลประกาศตำแหน่งงานว่างสาขา (Google Sheets tab แยก ตั้งค่าโดย Admin) */
 const ANNOUNCEMENT_JSON_URL = "https://raw.githubusercontent.com/recruitmakrocareer/jobs-vacancy/main/announcements.json";
+const STORE_LIST_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcWE1yGlnhFIldM8VQDeqe-fU0tMwuO8X3AprxKxAZ-z7jvQkvhRuYxZwJFuSithy1HUqVVTdKtErV/pub?gid=1268042686&single=true&output=csv";
 
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
 
@@ -482,6 +475,7 @@ const JOBS_PER_PAGE = 20;
 /* ================= STATE ================= */
 
 let allJobs = [];
+let storeMap = {}; // { "1": {name: "ลาดพร้าว", province: "กรุงเทพมหานคร"} }
 let currentTab = "all";
 let currentSort = "default";
 let currentPage = 1;
@@ -519,28 +513,29 @@ window.onload = init;
 async function init() {
   if (COMPANY_LOGO_URL) document.getElementById("companyLogo").src = COMPANY_LOGO_URL;
   await loadData();
+  await loadStoreList();
   loadAnnouncementBar();
 
   elQ.addEventListener("input", () => { currentPage = 1; renderJobs(); });
-  
+
   elFilterProvince.addEventListener("change", () => {
     currentPage = 1;
-    updateBranchDropdown(); 
-    renderJobs();           
-  });
-  
-  elFilterBranch.addEventListener("change", () => { currentPage = 1; renderJobs(); });
-  
-  elClearBtn.addEventListener("click", () => {
-    elQ.value = ""; 
-    elFilterProvince.value = ""; 
     updateBranchDropdown();
-    elFilterBranch.value = ""; 
+    renderJobs();
+  });
+
+  elFilterBranch.addEventListener("change", () => { currentPage = 1; renderJobs(); });
+
+  elClearBtn.addEventListener("click", () => {
+    elQ.value = "";
+    elFilterProvince.value = "";
+    updateBranchDropdown();
+    elFilterBranch.value = "";
     currentPage = 1;
     renderJobs();
   });
-  
-  elRefreshBtn.addEventListener("click", loadData);
+
+  elRefreshBtn.addEventListener("click", async () => { await loadData(); loadAnnouncementBar(); });
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
   applyModalOverlay.addEventListener("click", (e) => { if (e.target === applyModalOverlay) closeApplyModal(); });
 
@@ -1050,12 +1045,38 @@ function parseCSV(text) {
    ANNOUNCEMENT BAR - ประกาศตำแหน่งงานว่างสาขา
    ==================================================== */
 
+/* ---- Load StoreList: branch number → name/province map ---- */
+async function loadStoreList() {
+  try {
+    const res = await fetch(STORE_LIST_URL + '&t=' + Date.now());
+    if (!res.ok) return;
+    const text = await res.text();
+    const rows = parseCSV(text);
+    rows.slice(1).forEach(row => {
+      const num      = (row[0] || '').trim();
+      const name     = (row[1] || '').trim();
+      const province = (row[2] || '').trim();
+      if (num && name) storeMap[num] = { name, province };
+    });
+  } catch (e) {
+    console.warn('[StoreList] Failed to load:', e);
+  }
+}
+
+/* ---- Resolve branch number → display name ---- */
+function resolveAnnBranch(a) {
+  const raw = String(a.branch || '').trim();
+  const isNum = /^\d+$/.test(raw);
+  const store = storeMap[raw] || {};
+  const name     = isNum ? (store.name     || raw) : raw;
+  const province = a.province || (isNum ? store.province : '') || '';
+  return { name, province, full: province ? `${name} (จ.${province})` : name };
+}
+
 async function loadAnnouncementBar() {
-  const bar = document.getElementById('announcementBar');
+  const bar    = document.getElementById('announcementBar');
   const ticker = document.getElementById('annTicker');
   const loading = document.getElementById('annBarLoading');
-  const cardsSection = document.getElementById('annCardsSection');
-  const cardsEl = document.getElementById('annCards');
 
   try {
     const res = await fetch(ANNOUNCEMENT_JSON_URL + '?t=' + Date.now());
@@ -1067,58 +1088,53 @@ async function loadAnnouncementBar() {
       a.status === 'active' && (!a.expiry || a.expiry >= today)
     );
 
-    if (active.length === 0) {
-      bar.classList.add('hidden');
-      cardsSection.style.display = 'none';
-      return;
-    }
+    // Remove previously injected announcement jobs, then re-inject
+    allJobs = allJobs.filter(j => !j._isAnn);
 
-    // Ticker bar
-    if (sessionStorage.getItem('ann_bar_closed') !== '1') {
-      bar.classList.remove('hidden');
-      loading.style.display = 'none';
-      ticker.innerHTML = active.map(a => `
-        <span class="ann-item">
-          <span class="ann-item-branch">🏢 ${escAnn(a.branch)}</span>
-          <span class="ann-item-pos">${escAnn(a.position)}</span>
-          ${a.count ? `<span class="ann-item-count">${escAnn(String(a.count))} อัตรา</span>` : ''}
-        </span>
-        <span class="ann-item-sep">•</span>
-      `).join('');
-      ticker.style.display = 'flex';
-      ticker.style.animationDuration = Math.max(15, active.length * 8) + 's';
-    }
+    if (active.length > 0) {
+      const annJobs = active.map((a, i) => {
+        const { name, province, full } = resolveAnnBranch(a);
+        return {
+          id: 9000000 + i,
+          code: '',
+          branch: full,
+          position: a.position,
+          status: 'open',
+          province: province,
+          desc: a.duties || '',
+          qual: a.qual || '',
+          salary: a.salary || '',
+          _isAnn: true
+        };
+      });
+      allJobs.unshift(...annJobs);
+      updateProvinceDropdown();
+      updateBranchDropdown();
+      updateHeaderStats();
+      renderJobs();
 
-    // Announcement cards (same design as job cards)
-    cardsSection.style.display = 'block';
-    cardsEl.innerHTML = '';
-    active.forEach(a => {
-      const card = document.createElement('div');
-      card.className = 'job';
-      const branchText = a.province ? `${escAnn(a.branch)} (จ.${escAnn(a.province)})` : escAnn(a.branch);
-      const salaryHtml = a.salary ? `<div class="salary-text">💰 ${escAnn(a.salary)}</div>` : '';
-      const countHtml  = a.count  ? ` &nbsp;<span style="background:#fef3c7;color:#92400e;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">${escAnn(String(a.count))} อัตรา</span>` : '';
-      card.innerHTML =
-        '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-          '<span class="status-badge" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b;">📢 ด่วน!</span>' +
-        '</div>' +
-        '<h3>' + escAnn(a.position) + countHtml + '</h3>' +
-        '<div class="meta">' +
-          '<div>🏢 <strong>' + branchText + '</strong></div>' +
-          salaryHtml +
-        '</div>' +
-        '<div style="display:flex; gap:8px; margin-top:auto;">' +
-          '<button class="btn outline" style="flex:1;" onclick="openAnnModal(annData[' + active.indexOf(a) + '])">📖 ดูรายละเอียด</button>' +
-          '<button class="btn primary" style="flex:1;" onclick="openApplyForm(\'' + escapeQuotes(a.position) + '\', \'' + escapeQuotes(a.branch) + '\')">สมัครเลย</button>' +
-        '</div>';
-      cardsEl.appendChild(card);
-    });
-    window.annData = active;
+      // Ticker bar
+      if (sessionStorage.getItem('ann_bar_closed') !== '1') {
+        bar.classList.remove('hidden');
+        if (loading) loading.style.display = 'none';
+        ticker.innerHTML = active.map(a => {
+          const { name } = resolveAnnBranch(a);
+          return `<span class="ann-item">
+            <span class="ann-item-branch">🏢 ${escAnn(name)}</span>
+            <span class="ann-item-pos">${escAnn(a.position)}</span>
+            ${a.count ? `<span class="ann-item-count">${escAnn(String(a.count))} อัตรา</span>` : ''}
+          </span><span class="ann-item-sep">•</span>`;
+        }).join('');
+        ticker.style.display = 'flex';
+        ticker.style.animationDuration = Math.max(15, active.length * 8) + 's';
+      }
+    } else {
+      if (bar) bar.classList.add('hidden');
+    }
 
   } catch (err) {
     console.error('[Announcement] loadAnnouncementBar error:', err);
     if (bar) bar.classList.add('hidden');
-    if (cardsSection) cardsSection.style.display = 'none';
   }
 }
 
