@@ -462,7 +462,7 @@
 const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=2065374453&single=true&output=csv";
 
 /* URL สำหรับดึงข้อมูลประกาศตำแหน่งงานว่างสาขา (Google Sheets tab แยก ตั้งค่าโดย Admin) */
-const ANNOUNCEMENT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=0&single=true&output=csv";
+const ANNOUNCEMENT_JSON_URL = "https://raw.githubusercontent.com/recruitmakrocareer/jobs-vacancy/main/announcements.json";
 
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
 
@@ -1042,21 +1042,18 @@ async function loadAnnouncementBar() {
   const loading = document.getElementById('annBarLoading');
 
   if (sessionStorage.getItem('ann_bar_closed') === '1') return;
-  if (!ANNOUNCEMENT_CSV_URL) return;
 
   bar.classList.remove('hidden');
 
   try {
-    const res = await fetch(ANNOUNCEMENT_CSV_URL + '&t=' + Date.now());
+    const res = await fetch(ANNOUNCEMENT_JSON_URL + '?t=' + Date.now());
     if (!res.ok) throw new Error('Network error');
-    const text = await res.text();
-    const rows = parseCSV(text);
+    const items = await res.json();
 
-    // Expected columns: id, branch, position, count, expiry, status, detail, createdDate
-    const active = rows.slice(1).filter(r => {
-      const status = (r[5] || '').trim().toLowerCase();
-      return status === 'active' || status === 'เผยแพร่';
-    });
+    const today = new Date().toISOString().split('T')[0];
+    const active = items.filter(a =>
+      a.status === 'active' && (!a.expiry || a.expiry >= today)
+    );
 
     loading.style.display = 'none';
 
@@ -1065,19 +1062,14 @@ async function loadAnnouncementBar() {
       return;
     }
 
-    ticker.innerHTML = active.map(r => {
-      const branch = r[1] || '';
-      const position = r[2] || '';
-      const count = r[3] || '';
-      return `
-        <span class="ann-item">
-          <span class="ann-item-branch">🏢 ${escAnn(branch)}</span>
-          <span class="ann-item-pos">${escAnn(position)}</span>
-          ${count ? `<span class="ann-item-count">${escAnn(count)} อัตรา</span>` : ''}
-        </span>
-        <span class="ann-item-sep">•</span>
-      `;
-    }).join('');
+    ticker.innerHTML = active.map(a => `
+      <span class="ann-item">
+        <span class="ann-item-branch">🏢 ${escAnn(a.branch)}</span>
+        <span class="ann-item-pos">${escAnn(a.position)}</span>
+        ${a.count ? `<span class="ann-item-count">${escAnn(String(a.count))} อัตรา</span>` : ''}
+      </span>
+      <span class="ann-item-sep">•</span>
+    `).join('');
 
     ticker.style.display = 'flex';
     ticker.style.animationDuration = Math.max(15, active.length * 8) + 's';
