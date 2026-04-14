@@ -355,6 +355,14 @@
     </div>
   </section>
 
+  <!-- Announcement Cards -->
+  <section class="card" id="annCardsSection" style="display:none; border-left:4px solid #f59e0b;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <span class="pill" style="background:#fef3c7; color:#92400e;">📢 ประกาศด่วนจากสาขา</span>
+    </div>
+    <div id="annCards" class="grid"></div>
+  </section>
+
   <!-- Tabs & Jobs -->
   <section class="card">
     <div class="tabs">
@@ -1040,10 +1048,8 @@ async function loadAnnouncementBar() {
   const bar = document.getElementById('announcementBar');
   const ticker = document.getElementById('annTicker');
   const loading = document.getElementById('annBarLoading');
-
-  if (sessionStorage.getItem('ann_bar_closed') === '1') return;
-
-  bar.classList.remove('hidden');
+  const cardsSection = document.getElementById('annCardsSection');
+  const cardsEl = document.getElementById('annCards');
 
   try {
     const res = await fetch(ANNOUNCEMENT_JSON_URL + '?t=' + Date.now());
@@ -1055,28 +1061,86 @@ async function loadAnnouncementBar() {
       a.status === 'active' && (!a.expiry || a.expiry >= today)
     );
 
-    loading.style.display = 'none';
-
     if (active.length === 0) {
       bar.classList.add('hidden');
+      cardsSection.style.display = 'none';
       return;
     }
 
-    ticker.innerHTML = active.map(a => `
-      <span class="ann-item">
-        <span class="ann-item-branch">🏢 ${escAnn(a.branch)}</span>
-        <span class="ann-item-pos">${escAnn(a.position)}</span>
-        ${a.count ? `<span class="ann-item-count">${escAnn(String(a.count))} อัตรา</span>` : ''}
-      </span>
-      <span class="ann-item-sep">•</span>
-    `).join('');
+    // Ticker bar
+    if (sessionStorage.getItem('ann_bar_closed') !== '1') {
+      bar.classList.remove('hidden');
+      loading.style.display = 'none';
+      ticker.innerHTML = active.map(a => `
+        <span class="ann-item">
+          <span class="ann-item-branch">🏢 ${escAnn(a.branch)}</span>
+          <span class="ann-item-pos">${escAnn(a.position)}</span>
+          ${a.count ? `<span class="ann-item-count">${escAnn(String(a.count))} อัตรา</span>` : ''}
+        </span>
+        <span class="ann-item-sep">•</span>
+      `).join('');
+      ticker.style.display = 'flex';
+      ticker.style.animationDuration = Math.max(15, active.length * 8) + 's';
+    }
 
-    ticker.style.display = 'flex';
-    ticker.style.animationDuration = Math.max(15, active.length * 8) + 's';
+    // Announcement cards (same design as job cards)
+    cardsSection.style.display = 'block';
+    cardsEl.innerHTML = '';
+    active.forEach(a => {
+      const card = document.createElement('div');
+      card.className = 'job';
+      const branchText = a.province ? `${escAnn(a.branch)} (จ.${escAnn(a.province)})` : escAnn(a.branch);
+      const salaryHtml = a.salary ? `<div class="salary-text">💰 ${escAnn(a.salary)}</div>` : '';
+      const countHtml  = a.count  ? ` &nbsp;<span style="background:#fef3c7;color:#92400e;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">${escAnn(String(a.count))} อัตรา</span>` : '';
+      card.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:start;">' +
+          '<span class="status-badge" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b;">📢 ด่วน!</span>' +
+        '</div>' +
+        '<h3>' + escAnn(a.position) + countHtml + '</h3>' +
+        '<div class="meta">' +
+          '<div>🏢 <strong>' + branchText + '</strong></div>' +
+          salaryHtml +
+        '</div>' +
+        '<div style="display:flex; gap:8px; margin-top:auto;">' +
+          '<button class="btn outline" style="flex:1;" onclick="openAnnModal(annData[' + active.indexOf(a) + '])">📖 ดูรายละเอียด</button>' +
+          '<button class="btn primary" style="flex:1;" onclick="openApplyForm(\'' + escapeQuotes(a.position) + '\', \'' + escapeQuotes(a.branch) + '\')">สมัครเลย</button>' +
+        '</div>';
+      cardsEl.appendChild(card);
+    });
+    window.annData = active;
 
   } catch (err) {
     bar.classList.add('hidden');
+    if (cardsSection) cardsSection.style.display = 'none';
   }
+}
+
+function openAnnModal(a) {
+  if (!a) return;
+  const modalTitle  = document.getElementById('modalTitle');
+  const modalBranch = document.getElementById('modalBranch');
+  const modalSalary = document.getElementById('modalSalary');
+  const modalBody   = document.getElementById('modalBody');
+  const modal       = document.getElementById('jobModal');
+
+  const branchText = a.province ? `🏢 ${a.branch} (จ.${a.province})` : `🏢 ${a.branch}`;
+  modalTitle.textContent  = a.position;
+  modalBranch.textContent = branchText;
+  if (a.salary) { modalSalary.textContent = '💰 ' + a.salary; modalSalary.style.display = 'block'; }
+  else { modalSalary.style.display = 'none'; }
+
+  let content = '';
+  if (a.duties) content += '<div class="modal-section-title">📋 ลักษณะงาน</div>' + formatTextToFullList(a.duties);
+  if (a.qual)   content += '<div class="modal-section-title">🎓 คุณสมบัติผู้สมัคร</div>' + formatTextToFullList(a.qual);
+  if (!content) content = '<p style="color:#6b7280;">ติดต่อสอบถามรายละเอียดเพิ่มเติมได้ที่สาขา</p>';
+  modalBody.innerHTML = content;
+
+  // Update apply button
+  const applyBtn = document.getElementById('modalApplyBtn');
+  if (applyBtn) applyBtn.onclick = () => openApplyForm(a.position, a.branch);
+
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeAnnouncementBar() {
