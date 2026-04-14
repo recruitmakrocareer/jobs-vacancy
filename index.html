@@ -1116,7 +1116,8 @@ async function loadAnnouncementBar() {
     window.annData = active;
 
   } catch (err) {
-    bar.classList.add('hidden');
+    console.error('[Announcement] loadAnnouncementBar error:', err);
+    if (bar) bar.classList.add('hidden');
     if (cardsSection) cardsSection.style.display = 'none';
   }
 }
