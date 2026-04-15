@@ -1152,6 +1152,11 @@ async function loadAnnouncementBar() {
       }
     } else {
       if (bar) bar.classList.add('hidden');
+      // ต้อง re-render เพื่อให้การ์ดที่ถูกลบออกจาก allJobs หายไปจากหน้าจอด้วย
+      updateProvinceDropdown();
+      updateBranchDropdown();
+      updateHeaderStats();
+      renderJobs();
     }
 
   } catch (err) {
