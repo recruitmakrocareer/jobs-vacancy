@@ -464,6 +464,7 @@ const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ
 /* URL สำหรับดึงข้อมูลประกาศตำแหน่งงานว่างสาขา (Google Sheets tab แยก ตั้งค่าโดย Admin) */
 // Use GitHub Contents API (no CDN cache) so status changes reflect immediately
 const ANNOUNCEMENT_JSON_URL = "https://api.github.com/repos/recruitmakrocareer/jobs-vacancy/contents/announcements.json";
+const JOB_STATUS_JSON_URL   = "https://api.github.com/repos/recruitmakrocareer/jobs-vacancy/contents/job-status.json";
 const STORE_LIST_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcWE1yGlnhFIldM8VQDeqe-fU0tMwuO8X3AprxKxAZ-z7jvQkvhRuYxZwJFuSithy1HUqVVTdKtErV/pub?gid=1268042686&single=true&output=csv";
 
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
@@ -477,6 +478,7 @@ const JOBS_PER_PAGE = 20;
 
 let allJobs = [];
 let storeMap = {}; // { "1": {name: "ลาดพร้าว", province: "กรุงเทพมหานคร"} }
+let hrClosedCodes = new Set(); // job codes closed by HR via job-status.json
 let currentTab = "all";
 let currentSort = "default";
 let currentPage = 1;
@@ -515,6 +517,7 @@ async function init() {
   if (COMPANY_LOGO_URL) document.getElementById("companyLogo").src = COMPANY_LOGO_URL;
   await loadData();
   await loadStoreList();
+  await loadJobStatusOverrides();
   loadAnnouncementBar();
   // Auto-refresh announcements every 60 seconds so new postings appear without manual reload
   setInterval(loadAnnouncementBar, 60000);
@@ -1078,6 +1081,30 @@ async function loadStoreList() {
     });
   } catch (e) {
     console.warn('[StoreList] Failed to load:', e);
+  }
+}
+
+/* ---- Load HR Portal job-status overrides ---- */
+async function loadJobStatusOverrides() {
+  try {
+    const res = await fetch(JOB_STATUS_JSON_URL + '?t=' + Date.now(), {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) return;
+    const meta = await res.json();
+    const bin  = atob(meta.content.replace(/\s/g, ''));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    hrClosedCodes = new Set(data.closed || []);
+    if (hrClosedCodes.size > 0) {
+      // Apply override: mark HR-closed jobs as Closed
+      allJobs = allJobs.map(j => hrClosedCodes.has(j.code) ? { ...j, status: 'Closed' } : j);
+      updateHeaderStats();
+      renderJobs();
+    }
+  } catch (e) {
+    console.warn('[JobStatus] Failed to load overrides:', e);
   }
 }
 
