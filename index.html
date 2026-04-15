@@ -516,6 +516,8 @@ async function init() {
   await loadData();
   await loadStoreList();
   loadAnnouncementBar();
+  // Auto-refresh announcements every 60 seconds so new postings appear without manual reload
+  setInterval(loadAnnouncementBar, 60000);
 
   elQ.addEventListener("input", () => { currentPage = 1; renderJobs(); });
 
