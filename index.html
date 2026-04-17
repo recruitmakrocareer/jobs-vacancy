@@ -271,6 +271,25 @@
     @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(16px); } }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+    /* === Announcement Bar === */
+    .announcement-bar { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); color: #fff; overflow: hidden; }
+    .announcement-bar.hidden { display: none; }
+    .ann-bar-inner { display: flex; align-items: stretch; max-width: var(--max); margin: 0 auto; }
+    .ann-bar-label { background: rgba(0,0,0,0.2); padding: 10px 18px; font-weight: 700; font-size: 13px; white-space: nowrap; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .ann-bar-scroll { flex: 1; overflow: hidden; position: relative; display: flex; align-items: center; }
+    .ann-ticker { display: flex; animation: tickerScroll 30s linear infinite; white-space: nowrap; padding: 10px 0; }
+    .ann-ticker:hover { animation-play-state: paused; }
+    @keyframes tickerScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ann-item { display: inline-flex; align-items: center; gap: 10px; margin-right: 60px; font-size: 14px; }
+    .ann-item-branch { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 2px 12px; font-weight: 700; font-size: 12px; }
+    .ann-item-pos { font-weight: 600; }
+    .ann-item-count { background: #fbbf24; color: #92400e; border-radius: 20px; padding: 1px 10px; font-size: 11px; font-weight: 700; }
+    .ann-item-sep { color: rgba(255,255,255,0.4); font-size: 18px; }
+    .ann-bar-close { background: rgba(0,0,0,0.2); border: none; color: rgba(255,255,255,0.7); padding: 10px 14px; cursor: pointer; flex-shrink: 0; font-size: 16px; transition: background 0.2s; }
+    .ann-bar-close:hover { background: rgba(0,0,0,0.35); color: #fff; }
+    .ann-bar-loading { padding: 10px 18px; font-size: 13px; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 8px; }
   </style>
 </head>
 
@@ -313,6 +332,24 @@
     </div>
   </div>
 </header>
+
+<!-- Announcement Bar: ประกาศตำแหน่งงานว่างสาขา -->
+<div class="announcement-bar hidden" id="announcementBar">
+  <div class="ann-bar-inner">
+    <div class="ann-bar-label">
+      <span>📢</span>
+      <span>ประกาศตำแหน่งงานว่างสาขา</span>
+    </div>
+    <div class="ann-bar-scroll">
+      <div class="ann-bar-loading" id="annBarLoading">
+        <span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite"></span>
+        กำลังโหลดประกาศ...
+      </div>
+      <div class="ann-ticker" id="annTicker" style="display:none"></div>
+    </div>
+    <button class="ann-bar-close" onclick="closeAnnouncementBar()" title="ปิด">✕</button>
+  </div>
+</div>
 
 <main>
   <!-- Search & Filters -->
@@ -363,7 +400,7 @@
   <div class="modal-content">
     <div class="modal-header">
       <div style="flex:1; padding-right:16px;">
-        <span class="status-badge status-open" style="margin-bottom:8px">● เปิดรับสมัคร</span>
+        <span id="modalStatusBadge" class="status-badge status-open" style="margin-bottom:8px">● เปิดรับสมัคร</span>
         <h2 id="modalTitle" style="margin:8px 0 0; font-size:22px; line-height:1.3;">ชื่อตำแหน่ง</h2>
         <div id="modalBranch" style="color:#6b7280; font-size:14px; margin-top:6px;">สาขา</div>
         <div id="modalSalary" style="color:#059669; font-weight:600; font-size:15px; margin-top:6px; display:none;"></div>
@@ -439,7 +476,13 @@
 <script>
 /* ================= CONFIG ================= */
 
-const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=2065374453&single=true&output=csv"; 
+const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=2065374453&single=true&output=csv";
+
+/* URL สำหรับดึงข้อมูลประกาศตำแหน่งงานว่างสาขา (Google Sheets tab แยก ตั้งค่าโดย Admin) */
+// Use GitHub Contents API (no CDN cache) so status changes reflect immediately
+const ANNOUNCEMENT_JSON_URL = "https://api.github.com/repos/recruitmakrocareer/jobs-vacancy/contents/announcements.json";
+const JOB_STATUS_JSON_URL   = "https://api.github.com/repos/recruitmakrocareer/jobs-vacancy/contents/job-status.json";
+const STORE_LIST_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcWE1yGlnhFIldM8VQDeqe-fU0tMwuO8X3AprxKxAZ-z7jvQkvhRuYxZwJFuSithy1HUqVVTdKtErV/pub?gid=1268042686&single=true&output=csv";
 
 const COMPANY_LOGO_URL = "./LOGOT.png"; 
 
@@ -451,6 +494,8 @@ const JOBS_PER_PAGE = 20;
 /* ================= STATE ================= */
 
 let allJobs = [];
+let storeMap = {}; // { "1": {name: "ลาดพร้าว", province: "กรุงเทพมหานคร"} }
+let hrClosedCodes = new Set(); // job codes closed by HR via job-status.json
 let currentTab = "all";
 let currentSort = "default";
 let currentPage = 1;
@@ -488,27 +533,32 @@ window.onload = init;
 async function init() {
   if (COMPANY_LOGO_URL) document.getElementById("companyLogo").src = COMPANY_LOGO_URL;
   await loadData();
-  
+  await loadStoreList();
+  await loadJobStatusOverrides();
+  loadAnnouncementBar();
+  // Auto-refresh announcements every 60 seconds so new postings appear without manual reload
+  setInterval(loadAnnouncementBar, 60000);
+
   elQ.addEventListener("input", () => { currentPage = 1; renderJobs(); });
-  
+
   elFilterProvince.addEventListener("change", () => {
     currentPage = 1;
-    updateBranchDropdown(); 
-    renderJobs();           
-  });
-  
-  elFilterBranch.addEventListener("change", () => { currentPage = 1; renderJobs(); });
-  
-  elClearBtn.addEventListener("click", () => {
-    elQ.value = ""; 
-    elFilterProvince.value = ""; 
     updateBranchDropdown();
-    elFilterBranch.value = ""; 
+    renderJobs();
+  });
+
+  elFilterBranch.addEventListener("change", () => { currentPage = 1; renderJobs(); });
+
+  elClearBtn.addEventListener("click", () => {
+    elQ.value = "";
+    elFilterProvince.value = "";
+    updateBranchDropdown();
+    elFilterBranch.value = "";
     currentPage = 1;
     renderJobs();
   });
-  
-  elRefreshBtn.addEventListener("click", loadData);
+
+  elRefreshBtn.addEventListener("click", async () => { await loadData(); loadAnnouncementBar(); });
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
   applyModalOverlay.addEventListener("click", (e) => { if (e.target === applyModalOverlay) closeApplyModal(); });
 
@@ -868,6 +918,12 @@ function openJobModal(id) {
   currentModalJobId = id;
   addToRecent(id);
 
+  // Restore default modal state (may have been set by openAnnModal)
+  const modalStatusBadge = document.getElementById('modalStatusBadge');
+  if (modalStatusBadge) { modalStatusBadge.textContent = '● เปิดรับสมัคร'; modalStatusBadge.className = 'status-badge status-open'; modalStatusBadge.style = 'margin-bottom:8px'; }
+  document.getElementById('modalFavBtn').style.display = '';
+  document.getElementById('modalShareBtn').style.display = '';
+
   modalTitle.textContent = job.position;
   modalBranch.textContent = "🏢 " + job.branch;
   
@@ -1006,6 +1062,193 @@ function parseCSV(text) {
     row.push(field.trim());
     return row;
   }).filter(row => row !== null);
+}
+
+/* ====================================================
+   ANNOUNCEMENT BAR - ประกาศตำแหน่งงานว่างสาขา
+   ==================================================== */
+
+/* ---- Load StoreList: branch number → name/province map ---- */
+function hasThai(str) { return /[\u0E00-\u0E7F]/.test(str); }
+
+async function loadStoreList() {
+  try {
+    const res = await fetch(STORE_LIST_URL + '&t=' + Date.now());
+    if (!res.ok) return;
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (rows.length < 2) return;
+
+    // Auto-detect which column has Thai branch names (skip col 0 = number)
+    let nameCol = 1, provinceCol = -1;
+    const sample = rows.slice(1, 6);
+    for (let c = 1; c < (rows[0] || []).length; c++) {
+      if (sample.some(r => hasThai(r[c] || ''))) { nameCol = c; break; }
+    }
+    // Province column: first column after nameCol that has Thai text
+    for (let c = nameCol + 1; c < (rows[0] || []).length; c++) {
+      if (sample.some(r => hasThai(r[c] || ''))) { provinceCol = c; break; }
+    }
+
+    rows.slice(1).forEach(row => {
+      const num      = (row[0] || '').trim();
+      const name     = (row[nameCol] || '').trim();
+      const province = provinceCol >= 0 ? (row[provinceCol] || '').trim() : '';
+      if (num && name) storeMap[num] = { name, province };
+    });
+  } catch (e) {
+    console.warn('[StoreList] Failed to load:', e);
+  }
+}
+
+/* ---- Load HR Portal job-status overrides ---- */
+async function loadJobStatusOverrides() {
+  try {
+    const res = await fetch(JOB_STATUS_JSON_URL + '?t=' + Date.now(), {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) return;
+    const meta = await res.json();
+    const bin  = atob(meta.content.replace(/\s/g, ''));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    hrClosedCodes = new Set(data.closed || []);
+    if (hrClosedCodes.size > 0) {
+      // Apply override: mark HR-closed jobs as Closed
+      allJobs = allJobs.map(j => hrClosedCodes.has(j.code) ? { ...j, status: 'Closed' } : j);
+      updateHeaderStats();
+      renderJobs();
+    }
+  } catch (e) {
+    console.warn('[JobStatus] Failed to load overrides:', e);
+  }
+}
+
+/* ---- Resolve branch number → display name ---- */
+function resolveAnnBranch(a) {
+  const raw = String(a.branch || '').trim();
+  const isNum = /^\d+$/.test(raw);
+  const store = storeMap[raw] || {};
+  const name     = isNum ? (store.name     || raw) : raw;
+  const province = a.province || (isNum ? store.province : '') || '';
+  return { name, province, full: province ? `${name} (จ.${province})` : name };
+}
+
+async function loadAnnouncementBar() {
+  const bar    = document.getElementById('announcementBar');
+  const ticker = document.getElementById('annTicker');
+  const loading = document.getElementById('annBarLoading');
+
+  try {
+    const res = await fetch(ANNOUNCEMENT_JSON_URL, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+    if (!res.ok) throw new Error('GitHub API ' + res.status);
+    const meta = await res.json();
+    const bin = atob(meta.content.replace(/\s/g, ''));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const items = JSON.parse(new TextDecoder().decode(bytes));
+
+    const today = new Date().toISOString().split('T')[0];
+    const active = items.filter(a =>
+      a.status === 'active' && (!a.expiry || a.expiry >= today)
+    );
+
+    // Remove previously injected announcement jobs, then re-inject
+    allJobs = allJobs.filter(j => !j._isAnn);
+
+    if (active.length > 0) {
+      const annJobs = active.map((a, i) => {
+        const { name, province, full } = resolveAnnBranch(a);
+        return {
+          id: 9000000 + i,
+          code: '',
+          branch: full,
+          position: a.position,
+          status: 'open',
+          province: province,
+          desc: a.duties || '',
+          qual: a.qual || '',
+          salary: a.salary || '',
+          _isAnn: true
+        };
+      });
+      allJobs.unshift(...annJobs);
+      updateProvinceDropdown();
+      updateBranchDropdown();
+      updateHeaderStats();
+      renderJobs();
+
+      // Ticker bar
+      if (sessionStorage.getItem('ann_bar_closed') !== '1') {
+        bar.classList.remove('hidden');
+        if (loading) loading.style.display = 'none';
+        ticker.innerHTML = active.map(a => {
+          const { name } = resolveAnnBranch(a);
+          return `<span class="ann-item">
+            <span class="ann-item-branch">🏢 ${escAnn(name)}</span>
+            <span class="ann-item-pos">${escAnn(a.position)}</span>
+            ${a.count ? `<span class="ann-item-count">${escAnn(String(a.count))} อัตรา</span>` : ''}
+          </span><span class="ann-item-sep">•</span>`;
+        }).join('');
+        ticker.style.display = 'flex';
+        ticker.style.animationDuration = Math.max(15, active.length * 8) + 's';
+      }
+    } else {
+      if (bar) bar.classList.add('hidden');
+      // ต้อง re-render เพื่อให้การ์ดที่ถูกลบออกจาก allJobs หายไปจากหน้าจอด้วย
+      updateProvinceDropdown();
+      updateBranchDropdown();
+      updateHeaderStats();
+      renderJobs();
+    }
+
+  } catch (err) {
+    console.error('[Announcement] loadAnnouncementBar error:', err);
+    if (bar) bar.classList.add('hidden');
+  }
+}
+
+function openAnnModal(a) {
+  if (!a) return;
+
+  currentModalJobId = null; // announcements are not in allJobs
+
+  // Badge: ด่วน!
+  const badge = document.getElementById('modalStatusBadge');
+  if (badge) { badge.textContent = '📢 ด่วน!'; badge.className = 'status-badge'; badge.style.cssText = 'margin-bottom:8px;background:#fef3c7;color:#92400e;border:1px solid #f59e0b;'; }
+
+  // Hide fav/share (not applicable for announcements)
+  document.getElementById('modalFavBtn').style.display = 'none';
+  document.getElementById('modalShareBtn').style.display = 'none';
+
+  const branchText = a.province ? `🏢 ${a.branch} (จ.${a.province})` : `🏢 ${a.branch}`;
+  modalTitle.textContent  = a.position;
+  modalBranch.textContent = branchText;
+  if (a.salary) { modalSalary.textContent = '💰 ' + a.salary; modalSalary.style.display = 'block'; }
+  else { modalSalary.style.display = 'none'; }
+
+  let content = '';
+  if (a.count) content += `<p style="color:#92400e;font-weight:600;margin-bottom:12px;">📋 รับ ${escAnn(String(a.count))} อัตรา</p>`;
+  if (a.duties) content += '<div class="modal-section-title">📋 ลักษณะงาน</div>' + formatTextToFullList(a.duties);
+  if (a.qual)   content += '<div class="modal-section-title">🎓 คุณสมบัติผู้สมัคร</div>' + formatTextToFullList(a.qual);
+  if (!content) content = '<div class="muted" style="text-align:center;padding:20px;">ติดต่อสอบถามรายละเอียดเพิ่มเติมได้ที่สาขา</div>';
+  modalBody.innerHTML = content;
+
+  modalApplyBtn.onclick = function() { closeModal(); openApplyForm(a.position, a.branch); };
+
+  modalOverlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAnnouncementBar() {
+  document.getElementById('announcementBar').classList.add('hidden');
+  sessionStorage.setItem('ann_bar_closed', '1');
+}
+
+function escAnn(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 
