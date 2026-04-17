@@ -63,6 +63,9 @@
       opacity: 0; transition: opacity 0.3s;
     }
     .hero-banner:hover .hero-banner-overlay { opacity: 1; }
+    @media (max-width: 768px) {
+      .hero-banner-overlay { opacity: 1; }
+    }
     .hero-banner-cta {
       background: #fff; color: var(--makro-red); font-weight: 700; font-size: 16px;
       padding: 12px 32px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px;
