@@ -49,16 +49,12 @@
 
     /* === Hero Banner === */
     .hero-banner {
-      position: relative; z-index: 1; overflow: hidden;
-      max-height: 400px;
+      width: 100%; overflow: hidden; line-height: 0;
+      background: #f3f4f6;
     }
     .hero-banner img {
       width: 100%; height: auto; display: block;
-      object-fit: cover; max-height: 400px;
-    }
-    @media (max-width: 600px) {
-      .hero-banner { max-height: 200px; }
-      .hero-banner img { max-height: 200px; }
+      object-fit: cover;
     }
 
     .header-stats {
@@ -304,9 +300,6 @@
       <img id="companyLogo" src="" class="logo" alt="Makro Logo" referrerpolicy="no-referrer" onerror="this.style.display='none'">
     </div>
   </div>
-  <div class="hero-banner" id="heroBanner">
-    <img src="./banner.jpg" alt="Makro Online Interviews Days" onerror="this.parentElement.style.display='none'">
-  </div>
   <div class="header-stats">
     <div class="wrap">
       <div class="stat-item">
@@ -332,6 +325,11 @@
     </div>
   </div>
 </header>
+
+<!-- Hero Banner -->
+<div class="hero-banner" id="heroBanner">
+  <img src="./banner.jpg" alt="Makro Online Interviews Days" onerror="this.parentElement.style.display='none'">
+</div>
 
 <!-- Announcement Bar: ประกาศตำแหน่งงานว่างสาขา -->
 <div class="announcement-bar hidden" id="announcementBar">
