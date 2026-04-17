@@ -49,10 +49,24 @@
 
     /* === Hero Banner === */
     .hero-banner {
-      width: 100%; line-height: 0;
+      width: 100%; line-height: 0; cursor: pointer; position: relative;
     }
     .hero-banner img {
       width: 100%; height: auto; display: block;
+      transition: filter 0.3s;
+    }
+    .hero-banner:hover img { filter: brightness(0.9); }
+    .hero-banner-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.6));
+      padding: 20px 24px; display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .hero-banner:hover .hero-banner-overlay { opacity: 1; }
+    .hero-banner-cta {
+      background: #fff; color: var(--makro-red); font-weight: 700; font-size: 16px;
+      padding: 12px 32px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2); font-family: inherit;
     }
 
     .header-stats {
@@ -298,8 +312,11 @@
       <img id="companyLogo" src="" class="logo" alt="Makro Logo" referrerpolicy="no-referrer" onerror="this.style.display='none'">
     </div>
   </div>
-  <div class="hero-banner" id="heroBanner">
+  <div class="hero-banner" id="heroBanner" onclick="openBannerForm()">
     <img src="./banner.jpg" alt="Makro Online Interviews Days" onerror="this.parentElement.style.display='none'">
+    <div class="hero-banner-overlay">
+      <span class="hero-banner-cta">📝 คลิกเพื่อสมัครงาน</span>
+    </div>
   </div>
   <div class="header-stats">
     <div class="wrap">
@@ -970,6 +987,18 @@ function closeApplyModal() {
   applyModalOverlay.classList.remove("active");
   document.body.style.overflow = '';
   document.getElementById("applyModalBody").innerHTML = '';
+}
+
+/* ================= BANNER FORM ================= */
+
+const BANNER_FORM_URL = "https://forms.cloud.microsoft/r/i44HLJwBJX";
+
+function openBannerForm() {
+  document.getElementById("applyModalPosition").textContent = "Online Interviews Days - รับสมัครผู้จัดการแผนก ประจำสาขา ทั่วประเทศ";
+  document.getElementById("applyFormNewTab").href = BANNER_FORM_URL;
+  document.getElementById("applyModalBody").innerHTML = '<iframe src="' + BANNER_FORM_URL + '" allowfullscreen></iframe>';
+  applyModalOverlay.classList.add("active");
+  document.body.style.overflow = 'hidden';
 }
 
 /* ================= TOAST ================= */
