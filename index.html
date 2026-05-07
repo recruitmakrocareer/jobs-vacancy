@@ -49,11 +49,40 @@
 
     /* === Hero Banner === */
     .hero-banner {
-      width: 100%; line-height: 0;
+      width: 100%; line-height: 0; cursor: pointer; position: relative;
     }
     .hero-banner img {
       width: 100%; height: auto; display: block;
+      transition: filter 0.3s;
     }
+    .hero-banner:hover img { filter: brightness(0.9); }
+    .hero-banner-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.6));
+      padding: 20px 24px; display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .hero-banner:hover .hero-banner-overlay { opacity: 1; }
+    @media (max-width: 768px) {
+      .hero-banner-overlay { opacity: 1; }
+    }
+    .hero-banner-cta {
+      background: #fff; color: var(--makro-red); font-weight: 700; font-size: 16px;
+      padding: 12px 32px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2); font-family: inherit;
+    }
+
+    /* === Language Switcher === */
+    .lang-switcher {
+      display: flex; gap: 4px; background: rgba(255,255,255,0.15); padding: 3px; border-radius: 10px;
+    }
+    .lang-btn {
+      border: 0; background: transparent; color: rgba(255,255,255,0.8); padding: 6px 12px;
+      border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+      font-family: inherit; transition: all var(--transition); white-space: nowrap;
+    }
+    .lang-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .lang-btn.active { background: #fff; color: var(--makro-red); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 
     .header-stats {
       background: rgba(0,0,0,0.15); padding: 14px 18px; position: relative; z-index: 1;
@@ -292,32 +321,40 @@
   <div class="header-inner">
     <div class="wrap">
       <div class="header-text">
-        <h1>ร่วมงานกับเรา</h1>
-        <p>ค้นหาตำแหน่งงานว่างและสมัครออนไลน์ได้ทันที</p>
+        <h1 data-i18n="headerTitle">ร่วมงานกับเรา</h1>
+        <p data-i18n="headerSubtitle">ค้นหาตำแหน่งงานว่างและสมัครออนไลน์ได้ทันที</p>
       </div>
-      <img id="companyLogo" src="" class="logo" alt="Makro Logo" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:12px;">
+        <div class="lang-switcher" id="langSwitcher">
+          <button class="lang-btn active" data-lang="th">🇹🇭 ไทย</button>
+          <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
+          <button class="lang-btn" data-lang="lo">🇱🇦 ລາວ</button>
+          <button class="lang-btn" data-lang="my">🇲🇲 မြန်မာ</button>
+        </div>
+        <img id="companyLogo" src="" class="logo" alt="Makro Logo" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+      </div>
     </div>
   </div>
   <div class="header-stats">
     <div class="wrap">
       <div class="stat-item">
         <span>📋</span>
-        <span>ตำแหน่งว่าง</span>
+        <span data-i18n="statJobs">ตำแหน่งว่าง</span>
         <span class="stat-number" id="statTotal">-</span>
       </div>
       <div class="stat-item">
         <span>📍</span>
-        <span>จังหวัด</span>
+        <span data-i18n="statProvinces">จังหวัด</span>
         <span class="stat-number" id="statProvinces">-</span>
       </div>
       <div class="stat-item">
         <span>🏢</span>
-        <span>สาขา</span>
+        <span data-i18n="statBranches">สาขา</span>
         <span class="stat-number" id="statBranches">-</span>
       </div>
       <div class="stat-item">
         <span>❤️</span>
-        <span>ที่บันทึกไว้</span>
+        <span data-i18n="statSaved">ที่บันทึกไว้</span>
         <span class="stat-number" id="statSaved">0</span>
       </div>
     </div>
@@ -325,8 +362,11 @@
 </header>
 
 <!-- Hero Banner -->
-<div class="hero-banner" id="heroBanner">
+<div class="hero-banner" id="heroBanner" onclick="openBannerForm()">
   <img src="./banner.jpg" alt="Makro Online Interviews Days" onerror="this.parentElement.style.display='none'">
+  <div class="hero-banner-overlay">
+    <span class="hero-banner-cta" data-i18n="bannerCta">📝 คลิกเพื่อสมัครงาน</span>
+  </div>
 </div>
 
 <!-- Announcement Bar: ประกาศตำแหน่งงานว่างสาขา -->
@@ -334,16 +374,16 @@
   <div class="ann-bar-inner">
     <div class="ann-bar-label">
       <span>📢</span>
-      <span>ประกาศตำแหน่งงานว่างสาขา</span>
+      <span data-i18n="annBarLabel">ประกาศตำแหน่งงานว่างสาขา</span>
     </div>
     <div class="ann-bar-scroll">
       <div class="ann-bar-loading" id="annBarLoading">
         <span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite"></span>
-        กำลังโหลดประกาศ...
+        <span data-i18n="annBarLoading">กำลังโหลดประกาศ...</span>
       </div>
       <div class="ann-ticker" id="annTicker" style="display:none"></div>
     </div>
-    <button class="ann-bar-close" onclick="closeAnnouncementBar()" title="ปิด">✕</button>
+    <button class="ann-bar-close" onclick="closeAnnouncementBar()" title="Close">✕</button>
   </div>
 </div>
 
@@ -352,11 +392,11 @@
   <section class="card">
     <div class="row" style="justify-content:space-between">
       <div>
-        <span class="pill">🔍 ค้นหาตำแหน่งงาน</span>
-        <div class="muted" style="margin-top:6px;">เลือกสาขา หรือพิมพ์ชื่อตำแหน่งที่สนใจ</div>
+        <span class="pill" data-i18n="searchTitle">🔍 ค้นหาตำแหน่งงาน</span>
+        <div class="muted" style="margin-top:6px;" data-i18n="searchHint">เลือกสาขา หรือพิมพ์ชื่อตำแหน่งที่สนใจ</div>
       </div>
       <button class="btn ghost" id="refreshBtn">
-        <span style="font-size:18px">↻</span> รีเฟรช
+        <span style="font-size:18px">↻</span> <span data-i18n="refresh">รีเฟรช</span>
       </button>
     </div>
 
@@ -364,26 +404,26 @@
       <input id="q" placeholder="พิมพ์ชื่อตำแหน่งงาน, สาขา, จังหวัด..." style="flex:1;min-width:240px">
       <select id="filterProvince" style="min-width:160px"><option value="">📍 ทุกจังหวัด</option></select>
       <select id="filterBranch" style="min-width:180px"><option value="">🏢 ทุกสาขา</option></select>
-      <button class="btn ghost" id="clearBtn">ล้างตัวกรอง</button>
+      <button class="btn ghost" id="clearBtn" data-i18n="clearFilter">ล้างตัวกรอง</button>
     </div>
   </section>
 
   <!-- Tabs & Jobs -->
   <section class="card">
     <div class="tabs">
-      <button class="tab active" data-tab="all" id="tabAll">ตำแหน่งงานทั้งหมด <span class="tab-count" id="countAll">0</span></button>
-      <button class="tab" data-tab="saved" id="tabSaved">❤️ ที่บันทึกไว้ <span class="tab-count" id="countSaved">0</span></button>
-      <button class="tab" data-tab="recent" id="tabRecent">🕐 ดูล่าสุด <span class="tab-count" id="countRecent">0</span></button>
+      <button class="tab active" data-tab="all" id="tabAll"><span data-i18n="tabAll">ตำแหน่งงานทั้งหมด</span> <span class="tab-count" id="countAll">0</span></button>
+      <button class="tab" data-tab="saved" id="tabSaved"><span data-i18n="tabSaved">❤️ ที่บันทึกไว้</span> <span class="tab-count" id="countSaved">0</span></button>
+      <button class="tab" data-tab="recent" id="tabRecent"><span data-i18n="tabRecent">🕐 ดูล่าสุด</span> <span class="tab-count" id="countRecent">0</span></button>
     </div>
 
     <div class="sort-bar">
       <div id="statusMsg" class="muted">กำลังเชื่อมต่อฐานข้อมูล...</div>
       <div class="sort-options">
-        <span class="muted" style="font-size:13px">เรียงตาม:</span>
-        <button class="sort-btn active" data-sort="default">ค่าเริ่มต้น</button>
-        <button class="sort-btn" data-sort="position">ตำแหน่ง</button>
-        <button class="sort-btn" data-sort="branch">สาขา</button>
-        <button class="sort-btn" data-sort="salary">เงินเดือน</button>
+        <span class="muted" style="font-size:13px" data-i18n="sortBy">เรียงตาม:</span>
+        <button class="sort-btn active" data-sort="default" data-i18n="sortDefault">ค่าเริ่มต้น</button>
+        <button class="sort-btn" data-sort="position" data-i18n="sortPosition">ตำแหน่ง</button>
+        <button class="sort-btn" data-sort="branch" data-i18n="sortBranch">สาขา</button>
+        <button class="sort-btn" data-sort="salary" data-i18n="sortSalary">เงินเดือน</button>
       </div>
     </div>
     <div id="jobs" class="grid"></div>
@@ -406,12 +446,12 @@
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-footer">
       <div class="modal-footer-left">
-        <button class="btn outline sm" id="modalFavBtn" onclick="toggleFavoriteFromModal()">❤️ บันทึก</button>
-        <button class="btn outline sm" id="modalShareBtn" onclick="shareFromModal()">📤 แชร์</button>
+        <button class="btn outline sm" id="modalFavBtn" onclick="toggleFavoriteFromModal()">❤️ <span data-i18n="save">บันทึก</span></button>
+        <button class="btn outline sm" id="modalShareBtn" onclick="shareFromModal()">📤 <span data-i18n="share">แชร์</span></button>
       </div>
       <div class="modal-footer-right">
-        <button class="btn ghost" onclick="closeModal()">ปิดหน้าต่าง</button>
-        <button class="btn primary" id="modalApplyBtn">สมัครตำแหน่งนี้</button>
+        <button class="btn ghost" onclick="closeModal()" data-i18n="closeWindow">ปิดหน้าต่าง</button>
+        <button class="btn primary" id="modalApplyBtn" data-i18n="applyThis">สมัครตำแหน่งนี้</button>
       </div>
     </div>
   </div>
@@ -422,7 +462,7 @@
   <div class="apply-modal-content">
     <div class="apply-modal-header">
       <div class="position-info">
-        <h3>📝 ใบสมัครงาน</h3>
+        <h3 data-i18n="applicationForm">📝 ใบสมัครงาน</h3>
         <div class="branch-info" id="applyModalPosition">...</div>
       </div>
       <button class="close-modal" onclick="closeApplyModal()">✕</button>
@@ -430,10 +470,10 @@
     <div class="apply-modal-body" id="applyModalBody">
     </div>
     <div class="apply-modal-footer">
-      <span class="muted" style="font-size:13px">กรอกข้อมูลให้ครบถ้วนแล้วกดส่งในแบบฟอร์ม</span>
+      <span class="muted" style="font-size:13px" data-i18n="formHint">กรอกข้อมูลให้ครบถ้วนแล้วกดส่งในแบบฟอร์ม</span>
       <div style="display:flex; gap:8px;">
-        <a id="applyFormNewTab" href="#" target="_blank" class="btn outline sm">เปิดในแท็บใหม่</a>
-        <button class="btn ghost sm" onclick="closeApplyModal()">ปิด</button>
+        <a id="applyFormNewTab" href="#" target="_blank" class="btn outline sm" data-i18n="openNewTab">เปิดในแท็บใหม่</a>
+        <button class="btn ghost sm" onclick="closeApplyModal()" data-i18n="close">ปิด</button>
       </div>
     </div>
   </div>
@@ -450,17 +490,17 @@
   <div class="wrap">
     <div class="footer-grid">
       <div class="footer-section">
-        <h4>เกี่ยวกับ Makro</h4>
-        <p>แม็คโคร ศูนย์จำหน่ายสินค้าอุปโภคบริโภค ในราคาส่ง เพื่อผู้ประกอบการ ร้านค้า โรงแรม ร้านอาหาร และสถาบันต่างๆ</p>
+        <h4 data-i18n="footerAbout">เกี่ยวกับ Makro</h4>
+        <p data-i18n="footerAboutText">แม็คโคร ศูนย์จำหน่ายสินค้าอุปโภคบริโภค ในราคาส่ง เพื่อผู้ประกอบการ ร้านค้า โรงแรม ร้านอาหาร และสถาบันต่างๆ</p>
       </div>
       <div class="footer-section">
-        <h4>ข้อมูลเพิ่มเติม</h4>
-        <a href="https://www.makro.co.th" target="_blank" rel="noopener">เว็บไซต์ Makro</a>
-        <a href="https://www.makro.co.th/th/about" target="_blank" rel="noopener">เกี่ยวกับเรา</a>
+        <h4 data-i18n="footerMore">ข้อมูลเพิ่มเติม</h4>
+        <a href="https://www.makro.co.th" target="_blank" rel="noopener" data-i18n="footerWebsite">เว็บไซต์ Makro</a>
+        <a href="https://www.makro.co.th/th/about" target="_blank" rel="noopener" data-i18n="footerAboutUs">เกี่ยวกับเรา</a>
       </div>
       <div class="footer-section">
-        <h4>การสมัครงาน</h4>
-        <p>สมัครงานออนไลน์ผ่านหน้าเว็บไซต์นี้ โดยเลือกตำแหน่งที่สนใจ แล้วกรอกใบสมัครงานได้ทันที</p>
+        <h4 data-i18n="footerApply">การสมัครงาน</h4>
+        <p data-i18n="footerApplyText">สมัครงานออนไลน์ผ่านหน้าเว็บไซต์นี้ โดยเลือกตำแหน่งที่สนใจ แล้วกรอกใบสมัครงานได้ทันที</p>
       </div>
     </div>
     <div class="footer-bottom">
@@ -486,6 +526,308 @@ const FORM_BASE_URL = "https://forms.office.com/r/wabJfczd4Z";
 const FORM_ORDER_PICKER_URL = "https://forms.office.com/r/zdLQKYiYPz";
 
 const JOBS_PER_PAGE = 20;
+const BANNER_FORM_URL = "https://forms.cloud.microsoft/r/i44HLJwBJX";
+
+/* ================= TRANSLATIONS ================= */
+
+const LANG = {
+  th: {
+    headerTitle: "ร่วมงานกับเรา",
+    headerSubtitle: "ค้นหาตำแหน่งงานว่างและสมัครออนไลน์ได้ทันที",
+    bannerCta: "📝 คลิกเพื่อสมัครงาน",
+    searchTitle: "🔍 ค้นหาตำแหน่งงาน",
+    searchHint: "เลือกสาขา หรือพิมพ์ชื่อตำแหน่งที่สนใจ",
+    searchPlaceholder: "พิมพ์ชื่อตำแหน่งงาน, สาขา, จังหวัด...",
+    allProvinces: "📍 ทุกจังหวัด",
+    allBranches: "🏢 ทุกสาขา",
+    refresh: "รีเฟรช",
+    clearFilter: "ล้างตัวกรอง",
+    tabAll: "ตำแหน่งงานทั้งหมด",
+    tabSaved: "❤️ ที่บันทึกไว้",
+    tabRecent: "🕐 ดูล่าสุด",
+    sortBy: "เรียงตาม:",
+    sortDefault: "ค่าเริ่มต้น",
+    sortPosition: "ตำแหน่ง",
+    sortBranch: "สาขา",
+    sortSalary: "เงินเดือน",
+    statusOpen: "● เปิดรับสมัคร",
+    viewDetail: "📖 ดูรายละเอียด",
+    applyNow: "สมัครเลย",
+    applyThis: "สมัครตำแหน่งนี้",
+    save: "บันทึก",
+    saved: "บันทึกแล้ว",
+    share: "แชร์",
+    closeWindow: "ปิดหน้าต่าง",
+    close: "ปิด",
+    applicationForm: "📝 ใบสมัครงาน",
+    formHint: "กรอกข้อมูลให้ครบถ้วนแล้วกดส่งในแบบฟอร์ม",
+    openNewTab: "เปิดในแท็บใหม่",
+    descTitle: "📋 ลักษณะงาน",
+    qualTitle: "🎓 คุณสมบัติผู้สมัคร",
+    noDetail: "- ไม่มีรายละเอียดเพิ่มเติม -",
+    prevPage: "← ก่อนหน้า",
+    nextPage: "ถัดไป →",
+    statJobs: "ตำแหน่งว่าง",
+    statProvinces: "จังหวัด",
+    statBranches: "สาขา",
+    statSaved: "ที่บันทึกไว้",
+    loading: "กำลังเชื่อมต่อฐานข้อมูล...",
+    errorLoad: "เกิดข้อผิดพลาด",
+    foundJobs: "พบตำแหน่งงานว่าง",
+    allTotal: "ทั้งหมด",
+    count: "จำนวน",
+    positions: "อัตรา",
+    page: "หน้า",
+    showing: "แสดง",
+    searchWord: "คำค้น",
+    province: "จังหวัด",
+    at: "ที่",
+    noResult: "ไม่พบตำแหน่งงานที่ค้นหา",
+    noResultHint: "ลองค้นหาด้วยคำอื่น หรือล้างตัวกรอง",
+    noSaved: "ยังไม่มีตำแหน่งงานที่บันทึกไว้",
+    noSavedHint: "กดปุ่ม ❤️ บนตำแหน่งงานที่สนใจเพื่อบันทึกไว้",
+    noRecent: "ยังไม่มีประวัติการดูงาน",
+    noRecentHint: "ตำแหน่งงานที่คุณเปิดดูรายละเอียดจะแสดงที่นี่",
+    toastSaved: "❤️ บันทึกตำแหน่งงานแล้ว",
+    toastUnsaved: "💔 ลบออกจากรายการบันทึกแล้ว",
+    toastCopied: "📋 คัดลอกข้อมูลตำแหน่งงานแล้ว",
+    footerAbout: "เกี่ยวกับ Makro",
+    footerAboutText: "แม็คโคร ศูนย์จำหน่ายสินค้าอุปโภคบริโภค ในราคาส่ง เพื่อผู้ประกอบการ ร้านค้า โรงแรม ร้านอาหาร และสถาบันต่างๆ",
+    footerMore: "ข้อมูลเพิ่มเติม",
+    footerWebsite: "เว็บไซต์ Makro",
+    footerAboutUs: "เกี่ยวกับเรา",
+    footerApply: "การสมัครงาน",
+    footerApplyText: "สมัครงานออนไลน์ผ่านหน้าเว็บไซต์นี้ โดยเลือกตำแหน่งที่สนใจ แล้วกรอกใบสมัครงานได้ทันที",
+    annBarLabel: "ประกาศตำแหน่งงานว่างสาขา",
+    annBarLoading: "กำลังโหลดประกาศ...",
+    hiringCount: "รับ",
+    contactBranch: "ติดต่อสอบถามรายละเอียดเพิ่มเติมได้ที่สาขา",
+    urgent: "📢 ด่วน!",
+  },
+  en: {
+    headerTitle: "Join Our Team",
+    headerSubtitle: "Find job vacancies and apply online instantly",
+    bannerCta: "📝 Click to Apply",
+    searchTitle: "🔍 Search Jobs",
+    searchHint: "Select a branch or type a position you're interested in",
+    searchPlaceholder: "Type position, branch, province...",
+    allProvinces: "📍 All Provinces",
+    allBranches: "🏢 All Branches",
+    refresh: "Refresh",
+    clearFilter: "Clear Filters",
+    tabAll: "All Positions",
+    tabSaved: "❤️ Saved",
+    tabRecent: "🕐 Recent",
+    sortBy: "Sort by:",
+    sortDefault: "Default",
+    sortPosition: "Position",
+    sortBranch: "Branch",
+    sortSalary: "Salary",
+    statusOpen: "● Open",
+    viewDetail: "📖 Details",
+    applyNow: "Apply",
+    applyThis: "Apply for this position",
+    save: "Save",
+    saved: "Saved",
+    share: "Share",
+    closeWindow: "Close",
+    close: "Close",
+    applicationForm: "📝 Application Form",
+    formHint: "Fill in all information and submit in the form",
+    openNewTab: "Open in new tab",
+    descTitle: "📋 Job Description",
+    qualTitle: "🎓 Qualifications",
+    noDetail: "- No additional details -",
+    prevPage: "← Previous",
+    nextPage: "Next →",
+    statJobs: "Vacancies",
+    statProvinces: "Provinces",
+    statBranches: "Branches",
+    statSaved: "Saved",
+    loading: "Connecting to database...",
+    errorLoad: "Error",
+    foundJobs: "Found vacancies",
+    allTotal: "total",
+    count: "",
+    positions: "positions",
+    page: "Page",
+    showing: "showing",
+    searchWord: "search",
+    province: "province",
+    at: "at",
+    noResult: "No positions found",
+    noResultHint: "Try different keywords or clear filters",
+    noSaved: "No saved positions yet",
+    noSavedHint: "Tap ❤️ on positions you're interested in to save them",
+    noRecent: "No recently viewed positions",
+    noRecentHint: "Positions you view will appear here",
+    toastSaved: "❤️ Position saved",
+    toastUnsaved: "💔 Removed from saved",
+    toastCopied: "📋 Position info copied",
+    footerAbout: "About Makro",
+    footerAboutText: "Makro is a wholesale center for consumer products, serving businesses, shops, hotels, restaurants and organizations.",
+    footerMore: "More Info",
+    footerWebsite: "Makro Website",
+    footerAboutUs: "About Us",
+    footerApply: "How to Apply",
+    footerApplyText: "Apply online through this website. Choose a position you're interested in and fill out the application form.",
+    annBarLabel: "Branch Job Vacancy Announcements",
+    annBarLoading: "Loading announcements...",
+    hiringCount: "Hiring",
+    contactBranch: "Contact the branch for more details",
+    urgent: "📢 Urgent!",
+  },
+  lo: {
+    headerTitle: "ຮ່ວມງານກັບພວກເຮົາ",
+    headerSubtitle: "ຊອກຫາຕຳແໜ່ງວ່າງ ແລະ ສະໝັກອອນລາຍໄດ້ທັນທີ",
+    bannerCta: "📝 ຄລິກເພື່ອສະໝັກງານ",
+    searchTitle: "🔍 ຊອກຫາຕຳແໜ່ງງານ",
+    searchHint: "ເລືອກສາຂາ ຫຼື ພິມຊື່ຕຳແໜ່ງທີ່ສົນໃຈ",
+    searchPlaceholder: "ພິມຊື່ຕຳແໜ່ງ, ສາຂາ, ແຂວງ...",
+    allProvinces: "📍 ທຸກແຂວງ",
+    allBranches: "🏢 ທຸກສາຂາ",
+    refresh: "ໂຫຼດໃໝ່",
+    clearFilter: "ລ້າງຕົວກອງ",
+    tabAll: "ຕຳແໜ່ງທັງໝົດ",
+    tabSaved: "❤️ ທີ່ບັນທຶກໄວ້",
+    tabRecent: "🕐 ເບິ່ງລ່າສຸດ",
+    sortBy: "ຈັດລຽງຕາມ:",
+    sortDefault: "ຄ່າເລີ່ມຕົ້ນ",
+    sortPosition: "ຕຳແໜ່ງ",
+    sortBranch: "ສາຂາ",
+    sortSalary: "ເງິນເດືອນ",
+    statusOpen: "● ເປີດຮັບສະໝັກ",
+    viewDetail: "📖 ເບິ່ງລາຍລະອຽດ",
+    applyNow: "ສະໝັກເລີຍ",
+    applyThis: "ສະໝັກຕຳແໜ່ງນີ້",
+    save: "ບັນທຶກ",
+    saved: "ບັນທຶກແລ້ວ",
+    share: "ແບ່ງປັນ",
+    closeWindow: "ປິດໜ້າຕ່າງ",
+    close: "ປິດ",
+    applicationForm: "📝 ໃບສະໝັກງານ",
+    formHint: "ກະລຸນາຕື່ມຂໍ້ມູນໃຫ້ຄົບຖ້ວນ ແລ້ວກົດສົ່ງ",
+    openNewTab: "ເປີດໃນແທັບໃໝ່",
+    descTitle: "📋 ລັກສະນະງານ",
+    qualTitle: "🎓 ຄຸນສົມບັດຜູ້ສະໝັກ",
+    noDetail: "- ບໍ່ມີລາຍລະອຽດເພີ່ມເຕີມ -",
+    prevPage: "← ກ່ອນໜ້າ",
+    nextPage: "ຖັດໄປ →",
+    statJobs: "ຕຳແໜ່ງວ່າງ",
+    statProvinces: "ແຂວງ",
+    statBranches: "ສາຂາ",
+    statSaved: "ທີ່ບັນທຶກ",
+    loading: "ກຳລັງເຊື່ອມຕໍ່...",
+    errorLoad: "ເກີດຂໍ້ຜິດພາດ",
+    foundJobs: "ພົບຕຳແໜ່ງວ່າງ",
+    allTotal: "ທັງໝົດ",
+    count: "ຈຳນວນ",
+    positions: "ອັດຕາ",
+    page: "ໜ້າ",
+    showing: "ສະແດງ",
+    searchWord: "ຄຳຄົ້ນ",
+    province: "ແຂວງ",
+    at: "ທີ່",
+    noResult: "ບໍ່ພົບຕຳແໜ່ງທີ່ຊອກຫາ",
+    noResultHint: "ລອງຄົ້ນຫາດ້ວຍຄຳອື່ນ ຫຼື ລ້າງຕົວກອງ",
+    noSaved: "ຍັງບໍ່ມີຕຳແໜ່ງທີ່ບັນທຶກ",
+    noSavedHint: "ກົດ ❤️ ເພື່ອບັນທຶກຕຳແໜ່ງທີ່ສົນໃຈ",
+    noRecent: "ຍັງບໍ່ມີປະຫວັດການເບິ່ງ",
+    noRecentHint: "ຕຳແໜ່ງທີ່ທ່ານເບິ່ງຈະສະແດງຢູ່ນີ້",
+    toastSaved: "❤️ ບັນທຶກຕຳແໜ່ງແລ້ວ",
+    toastUnsaved: "💔 ລຶບອອກຈາກລາຍການແລ້ວ",
+    toastCopied: "📋 ຄັດລອກຂໍ້ມູນແລ້ວ",
+    footerAbout: "ກ່ຽວກັບ Makro",
+    footerAboutText: "ແມັກໂຄຣ ສູນຈຳໜ່າຍສິນຄ້າອຸປະໂພກບໍລິໂພກ ໃນລາຄາສົ່ງ ສຳລັບຜູ້ປະກອບການ ຮ້ານຄ້າ ໂຮງແຮມ ຮ້ານອາຫານ",
+    footerMore: "ຂໍ້ມູນເພີ່ມເຕີມ",
+    footerWebsite: "ເວັບໄຊທ໌ Makro",
+    footerAboutUs: "ກ່ຽວກັບພວກເຮົາ",
+    footerApply: "ການສະໝັກງານ",
+    footerApplyText: "ສະໝັກງານອອນລາຍຜ່ານເວັບໄຊທ໌ນີ້ ເລືອກຕຳແໜ່ງທີ່ສົນໃຈ ແລ້ວກອກໃບສະໝັກໄດ້ທັນທີ",
+    annBarLabel: "ປະກາດຕຳແໜ່ງງານວ່າງສາຂາ",
+    annBarLoading: "ກຳລັງໂຫຼດປະກາດ...",
+    hiringCount: "ຮັບ",
+    contactBranch: "ຕິດຕໍ່ສອບຖາມລາຍລະອຽດເພີ່ມເຕີມໄດ້ທີ່ສາຂາ",
+    urgent: "📢 ດ່ວນ!",
+  },
+  my: {
+    headerTitle: "ကျွန်ုပ်တို့နှင့် ပူးပေါင်းပါ",
+    headerSubtitle: "အလုပ်လစ်လပ်နေရာများ ရှာဖွေပြီး အွန်လိုင်းမှ လျှောက်ထားပါ",
+    bannerCta: "📝 အလုပ်လျှောက်ရန် နှိပ်ပါ",
+    searchTitle: "🔍 အလုပ်ရှာဖွေရန်",
+    searchHint: "ဌာနခွဲရွေးချယ်ပါ သို့မဟုတ် ရာထူးအမည် ရိုက်ထည့်ပါ",
+    searchPlaceholder: "ရာထူး, ဌာနခွဲ, ပြည်နယ်...",
+    allProvinces: "📍 ပြည်နယ်အားလုံး",
+    allBranches: "🏢 ဌာနခွဲအားလုံး",
+    refresh: "ပြန်လည်ရယူရန်",
+    clearFilter: "စစ်ထုတ်မှုရှင်းရန်",
+    tabAll: "ရာထူးအားလုံး",
+    tabSaved: "❤️ သိမ်းထားသည်",
+    tabRecent: "🕐 မကြာသေးမီ",
+    sortBy: "စီရန်:",
+    sortDefault: "မူရင်း",
+    sortPosition: "ရာထူး",
+    sortBranch: "ဌာနခွဲ",
+    sortSalary: "လစာ",
+    statusOpen: "● လျှောက်ထားနိုင်သည်",
+    viewDetail: "📖 အသေးစိတ်",
+    applyNow: "လျှောက်ထားရန်",
+    applyThis: "ဤရာထူးအတွက် လျှောက်ထားရန်",
+    save: "သိမ်းရန်",
+    saved: "သိမ်းပြီး",
+    share: "မျှဝေရန်",
+    closeWindow: "ပိတ်ရန်",
+    close: "ပိတ်ရန်",
+    applicationForm: "📝 လျှောက်လွှာ",
+    formHint: "အချက်အလက်အားလုံး ဖြည့်စွက်ပြီး ဖောင်တွင် တင်သွင်းပါ",
+    openNewTab: "တက်ဘ်အသစ်ဖွင့်ရန်",
+    descTitle: "📋 လုပ်ငန်းတာဝန်",
+    qualTitle: "🎓 အရည်အချင်းသတ်မှတ်ချက်",
+    noDetail: "- အသေးစိတ်အချက်အလက် မရှိပါ -",
+    prevPage: "← ယခင်",
+    nextPage: "နောက် →",
+    statJobs: "လစ်လပ်နေရာ",
+    statProvinces: "ပြည်နယ်",
+    statBranches: "ဌာနခွဲ",
+    statSaved: "သိမ်းထားသည်",
+    loading: "ချိတ်ဆက်နေသည်...",
+    errorLoad: "အမှားဖြစ်ပွားသည်",
+    foundJobs: "လစ်လပ်နေရာ တွေ့ရှိသည်",
+    allTotal: "စုစုပေါင်း",
+    count: "",
+    positions: "နေရာ",
+    page: "စာမျက်နှာ",
+    showing: "ပြသနေသည်",
+    searchWord: "ရှာဖွေမှု",
+    province: "ပြည်နယ်",
+    at: "တွင်",
+    noResult: "ရာထူး ရှာမတွေ့ပါ",
+    noResultHint: "အခြားစကားလုံးဖြင့် ရှာကြည့်ပါ",
+    noSaved: "သိမ်းထားသော ရာထူးမရှိသေးပါ",
+    noSavedHint: "စိတ်ဝင်စားသော ရာထူးတွင် ❤️ နှိပ်၍ သိမ်းပါ",
+    noRecent: "ကြည့်ရှုမှတ်တမ်း မရှိသေးပါ",
+    noRecentHint: "သင်ကြည့်ရှုသော ရာထူးများ ဤနေရာတွင် ပေါ်လာပါမည်",
+    toastSaved: "❤️ ရာထူး သိမ်းပြီး",
+    toastUnsaved: "💔 စာရင်းမှ ဖယ်ရှားပြီး",
+    toastCopied: "📋 အချက်အလက် ကူးယူပြီး",
+    footerAbout: "Makro အကြောင်း",
+    footerAboutText: "Makro သည် လက်လီလက်ကားအရောင်းစင်တာ ဖြစ်ပါသည်။ လုပ်ငန်းရှင်များ စတိုးဆိုင်များ ဟိုတယ်များ စားသောက်ဆိုင်များအတွက်",
+    footerMore: "နောက်ထပ်အချက်အလက်",
+    footerWebsite: "Makro ဝက်ဘ်ဆိုက်",
+    footerAboutUs: "ကျွန်ုပ်တို့အကြောင်း",
+    footerApply: "လျှောက်ထားနည်း",
+    footerApplyText: "ဤဝက်ဘ်ဆိုက်မှ အွန်လိုင်းဖြင့် လျှောက်ထားပါ။ စိတ်ဝင်စားသော ရာထူးကိုရွေးပြီး လျှောက်လွှာဖြည့်ပါ။",
+    annBarLabel: "ဌာနခွဲ အလုပ်လစ်လပ်နေရာ ကြေညာချက်",
+    annBarLoading: "ကြေညာချက်များ ဖတ်နေသည်...",
+    hiringCount: "ခေါ်ယူ",
+    contactBranch: "အသေးစိတ်အတွက် ဌာနခွဲသို့ ဆက်သွယ်ပါ",
+    urgent: "📢 အရေးပေါ်!",
+  }
+};
+
+let currentLang = localStorage.getItem("makro_lang") || "th";
+
+function T(key) { return (LANG[currentLang] && LANG[currentLang][key]) || LANG.th[key] || key; }
 
 /* ================= STATE ================= */
 
@@ -528,6 +870,7 @@ window.onload = init;
 
 async function init() {
   if (COMPANY_LOGO_URL) document.getElementById("companyLogo").src = COMPANY_LOGO_URL;
+  initLanguage();
   await loadData();
   await loadStoreList();
   await loadJobStatusOverrides();
@@ -632,7 +975,7 @@ async function loadData() {
     
   } catch (error) {
     console.error(error);
-    elStatus.innerHTML = '<span style="color:red">เกิดข้อผิดพลาด: ' + error.message + '</span>';
+    elStatus.innerHTML = '<span style="color:red">' + T("errorLoad") + ': ' + error.message + '</span>';
   }
 }
 
@@ -694,18 +1037,18 @@ function renderJobs() {
   // Empty state
   if (filtered.length === 0) {
     elStatus.textContent = "";
-    let emptyMsg = "ไม่พบตำแหน่งงานที่ค้นหา";
+    let emptyMsg = T("noResult");
     let emptyIcon = "🔍";
-    let emptyHint = "ลองค้นหาด้วยคำอื่น หรือล้างตัวกรอง";
+    let emptyHint = T("noResultHint");
 
     if (currentTab === "saved") {
-      emptyMsg = "ยังไม่มีตำแหน่งงานที่บันทึกไว้";
+      emptyMsg = T("noSaved");
       emptyIcon = "❤️";
-      emptyHint = "กดปุ่ม ❤️ บนตำแหน่งงานที่สนใจเพื่อบันทึกไว้";
+      emptyHint = T("noSavedHint");
     } else if (currentTab === "recent") {
-      emptyMsg = "ยังไม่มีประวัติการดูงาน";
+      emptyMsg = T("noRecent");
       emptyIcon = "🕐";
-      emptyHint = "ตำแหน่งงานที่คุณเปิดดูรายละเอียดจะแสดงที่นี่";
+      emptyHint = T("noRecentHint");
     }
 
     elJobs.innerHTML = '<div class="empty-state">' +
@@ -724,16 +1067,16 @@ function renderJobs() {
   const pageJobs = filtered.slice(startIdx, endIdx);
 
   // Status text
-  let statusText = "พบตำแหน่งงานว่าง";
-  if (provinceFilter) statusText += " จังหวัด" + provinceFilter;
+  let statusText = T("foundJobs");
+  if (provinceFilter) statusText += " " + T("province") + " " + provinceFilter;
   if (branchFilter) {
-    statusText += " ที่" + branchFilter.split(' (จ.')[0];
+    statusText += " " + T("at") + " " + branchFilter.split(' (จ.')[0];
   }
-  if (searchText) statusText += ' (คำค้น: "' + elQ.value + '")';
-  if (!provinceFilter && !branchFilter && !searchText) statusText += "ทั้งหมด";
-  statusText += ' จำนวน <span style="color:#ED1C24; font-weight:bold; font-size:1.1em;">' + filtered.length + '</span> อัตรา';
+  if (searchText) statusText += ' (' + T("searchWord") + ': "' + elQ.value + '")';
+  if (!provinceFilter && !branchFilter && !searchText) statusText += " " + T("allTotal");
+  statusText += ' <span style="color:#ED1C24; font-weight:bold; font-size:1.1em;">' + filtered.length + '</span> ' + T("positions");
   if (totalPages > 1) {
-    statusText += ' <span class="muted" style="font-size:0.9em;">(หน้า ' + currentPage + '/' + totalPages + ' แสดง ' + (startIdx+1) + '-' + endIdx + ')</span>';
+    statusText += ' <span class="muted" style="font-size:0.9em;">(' + T("page") + ' ' + currentPage + '/' + totalPages + ' ' + T("showing") + ' ' + (startIdx+1) + '-' + endIdx + ')</span>';
   }
   elStatus.innerHTML = statusText;
 
@@ -749,12 +1092,12 @@ function renderJobs() {
 
     card.innerHTML = 
       '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-        '<span class="status-badge status-open">● เปิดรับสมัคร</span>' +
+        '<span class="status-badge status-open">' + T("statusOpen") + '</span>' +
         '<div style="display:flex;gap:4px;">' +
-          '<button class="btn icon-btn outline' + favClass + '" onclick="event.stopPropagation();toggleFavorite(' + job.id + ',this)" title="บันทึก">' +
+          '<button class="btn icon-btn outline' + favClass + '" onclick="event.stopPropagation();toggleFavorite(' + job.id + ',this)" title="' + T("save") + '">' +
             (isFav ? '❤️' : '🤍') +
           '</button>' +
-          '<button class="btn icon-btn outline" onclick="event.stopPropagation();shareJob(' + job.id + ')" title="แชร์">📤</button>' +
+          '<button class="btn icon-btn outline" onclick="event.stopPropagation();shareJob(' + job.id + ')" title="' + T("share") + '">📤</button>' +
         '</div>' +
       '</div>' +
       '<h3>' + job.position + '</h3>' +
@@ -763,8 +1106,8 @@ function renderJobs() {
         salaryHtml +
       '</div>' +
       '<div style="display:flex; gap:8px; margin-top:auto;">' +
-        '<button class="btn outline" style="flex:1;" onclick="openJobModal(' + job.id + ')">📖 ดูรายละเอียด</button>' +
-        '<button class="btn primary" style="flex:1;" onclick="openApplyForm(\'' + escapeQuotes(job.position) + '\', \'' + escapeQuotes(job.branch) + '\')">สมัครเลย</button>' +
+        '<button class="btn outline" style="flex:1;" onclick="openJobModal(' + job.id + ')">' + T("viewDetail") + '</button>' +
+        '<button class="btn primary" style="flex:1;" onclick="openApplyForm(\'' + escapeQuotes(job.position) + '\', \'' + escapeQuotes(job.branch) + '\')">' + T("applyNow") + '</button>' +
       '</div>';
     elJobs.appendChild(card);
   });
@@ -781,7 +1124,7 @@ function renderPagination(totalPages) {
   let html = '<div class="pagination">';
   
   // Prev button
-  html += '<button class="page-btn nav" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>← ก่อนหน้า</button>';
+  html += '<button class="page-btn nav" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>' + T("prevPage") + '</button>';
   
   // Page numbers with smart truncation
   const pages = getPageNumbers(currentPage, totalPages);
@@ -794,7 +1137,7 @@ function renderPagination(totalPages) {
   });
   
   // Next button
-  html += '<button class="page-btn nav" onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>ถัดไป →</button>';
+  html += '<button class="page-btn nav" onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>' + T("nextPage") + '</button>';
   
   html += '</div>';
   elPagination.innerHTML = html;
@@ -844,11 +1187,11 @@ function toggleFavorite(id, btnEl) {
   if (idx === -1) {
     favorites.push(id);
     if (btnEl) { btnEl.innerHTML = "❤️"; btnEl.classList.add("favorite-active"); btnEl.style.animation = "pulse 0.3s"; setTimeout(() => btnEl.style.animation = "", 300); }
-    showToast("❤️ บันทึกตำแหน่งงานแล้ว");
+    showToast(T("toastSaved"));
   } else {
     favorites.splice(idx, 1);
     if (btnEl) { btnEl.innerHTML = "🤍"; btnEl.classList.remove("favorite-active"); }
-    showToast("💔 ลบออกจากรายการบันทึกแล้ว");
+    showToast(T("toastUnsaved"));
   }
   localStorage.setItem("makro_favorites", JSON.stringify(favorites));
   updateHeaderStats();
@@ -894,7 +1237,7 @@ function shareJob(id) {
     navigator.share({ title: job.position + " - Makro", text: text }).catch(() => {});
   } else {
     navigator.clipboard.writeText(text).then(() => {
-      showToast("📋 คัดลอกข้อมูลตำแหน่งงานแล้ว");
+      showToast(T("toastCopied"));
     }).catch(() => {
       showToast("ไม่สามารถคัดลอกได้");
     });
@@ -916,7 +1259,7 @@ function openJobModal(id) {
 
   // Restore default modal state (may have been set by openAnnModal)
   const modalStatusBadge = document.getElementById('modalStatusBadge');
-  if (modalStatusBadge) { modalStatusBadge.textContent = '● เปิดรับสมัคร'; modalStatusBadge.className = 'status-badge status-open'; modalStatusBadge.style = 'margin-bottom:8px'; }
+  if (modalStatusBadge) { modalStatusBadge.textContent = T("statusOpen"); modalStatusBadge.className = 'status-badge status-open'; modalStatusBadge.style = 'margin-bottom:8px'; }
   document.getElementById('modalFavBtn').style.display = '';
   document.getElementById('modalShareBtn').style.display = '';
 
@@ -932,12 +1275,12 @@ function openJobModal(id) {
   
   let content = '';
   if (job.desc) {
-    content += '<div class="modal-section-title">📋 ลักษณะงาน</div>' + formatTextToFullList(job.desc);
+    content += '<div class="modal-section-title">' + T("descTitle") + '</div>' + formatTextToFullList(job.desc);
   }
   if (job.qual) {
-    content += '<div class="modal-section-title">🎓 คุณสมบัติผู้สมัคร</div>' + formatTextToFullList(job.qual);
+    content += '<div class="modal-section-title">' + T("qualTitle") + '</div>' + formatTextToFullList(job.qual);
   }
-  if (!content) content = '<div class="muted" style="text-align:center; padding:20px;">- ไม่มีรายละเอียดเพิ่มเติม -</div>';
+  if (!content) content = '<div class="muted" style="text-align:center; padding:20px;">' + T("noDetail") + '</div>';
   
   modalBody.innerHTML = content;
   modalApplyBtn.onclick = function() { closeModal(); openApplyForm(job.position, job.branch); };
@@ -996,7 +1339,7 @@ function updateProvinceDropdown() {
   openJobs.forEach(j => { if (j.province) provinceCounts[j.province] = (provinceCounts[j.province] || 0) + 1; });
   const provinces = Object.keys(provinceCounts).sort();
   const currentVal = elFilterProvince.value;
-  elFilterProvince.innerHTML = '<option value="">📍 ทุกจังหวัด (' + openJobs.length + ')</option>';
+  elFilterProvince.innerHTML = '<option value="">' + T("allProvinces") + ' (' + openJobs.length + ')</option>';
   provinces.forEach(p => {
     const opt = document.createElement("option");
     opt.value = p; opt.textContent = p + " (" + provinceCounts[p] + ")"; elFilterProvince.appendChild(opt);
@@ -1015,7 +1358,7 @@ function updateBranchDropdown() {
   filteredJobs.forEach(j => { branchCounts[j.branch] = (branchCounts[j.branch] || 0) + 1; });
   const branches = Object.keys(branchCounts).sort();
   
-  elFilterBranch.innerHTML = '<option value="">🏢 ทุกสาขา (' + filteredJobs.length + ')</option>';
+  elFilterBranch.innerHTML = '<option value="">' + T("allBranches") + ' (' + filteredJobs.length + ')</option>';
   branches.forEach(b => {
     const opt = document.createElement("option");
     opt.value = b; opt.textContent = b + " (" + branchCounts[b] + ")"; elFilterBranch.appendChild(opt);
@@ -1212,7 +1555,7 @@ function openAnnModal(a) {
 
   // Badge: ด่วน!
   const badge = document.getElementById('modalStatusBadge');
-  if (badge) { badge.textContent = '📢 ด่วน!'; badge.className = 'status-badge'; badge.style.cssText = 'margin-bottom:8px;background:#fef3c7;color:#92400e;border:1px solid #f59e0b;'; }
+  if (badge) { badge.textContent = T("urgent"); badge.className = 'status-badge'; badge.style.cssText = 'margin-bottom:8px;background:#fef3c7;color:#92400e;border:1px solid #f59e0b;'; }
 
   // Hide fav/share (not applicable for announcements)
   document.getElementById('modalFavBtn').style.display = 'none';
@@ -1225,10 +1568,10 @@ function openAnnModal(a) {
   else { modalSalary.style.display = 'none'; }
 
   let content = '';
-  if (a.count) content += `<p style="color:#92400e;font-weight:600;margin-bottom:12px;">📋 รับ ${escAnn(String(a.count))} อัตรา</p>`;
-  if (a.duties) content += '<div class="modal-section-title">📋 ลักษณะงาน</div>' + formatTextToFullList(a.duties);
-  if (a.qual)   content += '<div class="modal-section-title">🎓 คุณสมบัติผู้สมัคร</div>' + formatTextToFullList(a.qual);
-  if (!content) content = '<div class="muted" style="text-align:center;padding:20px;">ติดต่อสอบถามรายละเอียดเพิ่มเติมได้ที่สาขา</div>';
+  if (a.count) content += `<p style="color:#92400e;font-weight:600;margin-bottom:12px;">📋 ${T("hiringCount")} ${escAnn(String(a.count))} ${T("positions")}</p>`;
+  if (a.duties) content += '<div class="modal-section-title">' + T("descTitle") + '</div>' + formatTextToFullList(a.duties);
+  if (a.qual)   content += '<div class="modal-section-title">' + T("qualTitle") + '</div>' + formatTextToFullList(a.qual);
+  if (!content) content = '<div class="muted" style="text-align:center;padding:20px;">' + T("contactBranch") + '</div>';
   modalBody.innerHTML = content;
 
   modalApplyBtn.onclick = function() { closeModal(); openApplyForm(a.position, a.branch); };
@@ -1245,6 +1588,44 @@ function closeAnnouncementBar() {
 function escAnn(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ================= LANGUAGE ================= */
+
+function initLanguage() {
+  applyLanguage();
+  document.querySelectorAll(".lang-btn").forEach(btn => {
+    if (btn.dataset.lang === currentLang) btn.classList.add("active");
+    else btn.classList.remove("active");
+    btn.addEventListener("click", () => {
+      currentLang = btn.dataset.lang;
+      localStorage.setItem("makro_lang", currentLang);
+      document.querySelectorAll(".lang-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyLanguage();
+      updateProvinceDropdown();
+      updateBranchDropdown();
+      renderJobs();
+    });
+  });
+}
+
+function applyLanguage() {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    const text = T(key);
+    if (text) el.textContent = text;
+  });
+  elQ.placeholder = T("searchPlaceholder");
+  document.title = T("headerTitle") + " - Makro";
+}
+
+function openBannerForm() {
+  document.getElementById("applyModalPosition").textContent = "Online Interviews Days - รับสมัครผู้จัดการแผนก ประจำสาขา ทั่วประเทศ";
+  document.getElementById("applyFormNewTab").href = BANNER_FORM_URL;
+  document.getElementById("applyModalBody").innerHTML = '<iframe src="' + BANNER_FORM_URL + '" allowfullscreen></iframe>';
+  applyModalOverlay.classList.add("active");
+  document.body.style.overflow = 'hidden';
 }
 </script>
 
