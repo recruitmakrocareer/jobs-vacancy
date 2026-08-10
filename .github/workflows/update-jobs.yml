@@ -1,0 +1,52 @@
+name: Update Job Vacancy JSON
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-jobs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Google Sheet CSV
+        run: |
+          curl -L --fail \
+          "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-aAempo3sn5LxfvOq0MRB2YMRs2rFTjocqidMYpwGUKdqG1DGUz5uCEfd3ddNjxStdWifLgBbrqXV/pub?gid=2065374453&single=true&output=csv" \
+          -o jobs.csv
+
+      - name: Convert CSV to JSON
+        run: |
+          python3 - <<'PY'
+          import csv
+          import json
+
+          with open("jobs.csv", "r", encoding="utf-8-sig") as f:
+              rows = list(csv.DictReader(f))
+
+          with open("jobs.json", "w", encoding="utf-8") as f:
+              json.dump(rows, f, ensure_ascii=False, indent=2)
+
+          print(f"Converted {len(rows)} rows")
+          PY
+
+      - name: Commit updated jobs.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add jobs.json
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Auto update job vacancy data"
+            git push
+          fi
